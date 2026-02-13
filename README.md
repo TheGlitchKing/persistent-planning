@@ -43,7 +43,18 @@ For every complex task, create three files:
 
 ## Installation
 
-### Option 1: Installer Script (Recommended)
+### Option 1: NPM (Recommended)
+
+```bash
+# Install globally
+npm install -g @theglitchking/persistent-planning
+persistent-planning install --scope user
+
+# Or via npx (no global install)
+npx @theglitchking/persistent-planning install --scope user
+```
+
+### Option 2: Installer Script
 
 ```bash
 git clone https://github.com/TheGlitchKing/persistent-planning.git
@@ -53,21 +64,20 @@ cd persistent-planning
 ./install.sh --scope project    # Current project only
 ```
 
-### Option 2: Manual Installation
+### Option 3: Claude Marketplace
+
+```
+/plugin install TheGlitchKing/persistent-planning
+```
+
+### Option 4: Manual Installation
 
 ```bash
-# Clone to your skills directory
 mkdir -p ~/.claude/skills
 cp -r persistent-planning/skills/SKILL.md ~/.claude/skills/persistent-planning/SKILL.md
 cp -r persistent-planning/scripts ~/.claude/skills/persistent-planning/scripts
 cp -r persistent-planning/docs ~/.claude/skills/persistent-planning/docs
 cp persistent-planning/.claude/commands/start-planning.md ~/.claude/commands/start-planning.md
-```
-
-### Option 3: Claude Marketplace
-
-```
-/plugin install TheGlitchKing/persistent-planning
 ```
 
 ## Usage

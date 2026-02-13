@@ -1,0 +1,55 @@
+{
+  "name": "@theglitchking/persistent-planning",
+  "version": "1.0.0",
+  "description": "Persistent markdown-based planning with task directories, progress tracking, and context engineering for multi-step Claude Code workflows",
+  "type": "commonjs",
+  "bin": {
+    "persistent-planning": "./bin/persistent-planning.js"
+  },
+  "scripts": {
+    "postinstall": "node postinstall.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "scripts/",
+    "docs/",
+    ".claude/",
+    ".claude-plugin/",
+    "postinstall.js",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "claude-code",
+    "planning",
+    "persistent",
+    "markdown",
+    "context-engineering",
+    "task-tracking",
+    "working-memory",
+    "goal-tracking",
+    "manus",
+    "plugin"
+  ],
+  "author": {
+    "name": "TheGlitchKing",
+    "email": "theglitchking@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheGlitchKing/persistent-planning.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TheGlitchKing/persistent-planning/issues"
+  },
+  "homepage": "https://github.com/TheGlitchKing/persistent-planning#readme"
+}
