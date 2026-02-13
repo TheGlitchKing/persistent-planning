@@ -1,10 +1,10 @@
 {
   "name": "@theglitchking/persistent-planning",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Persistent markdown-based planning with task directories, progress tracking, and context engineering for multi-step Claude Code workflows",
   "type": "commonjs",
   "bin": {
-    "persistent-planning": "./bin/persistent-planning.js"
+    "persistent-planning": "bin/persistent-planning.js"
   },
   "scripts": {
     "postinstall": "node postinstall.js"
@@ -46,7 +46,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/TheGlitchKing/persistent-planning.git"
+    "url": "git+https://github.com/TheGlitchKing/persistent-planning.git"
   },
   "bugs": {
     "url": "https://github.com/TheGlitchKing/persistent-planning/issues"
