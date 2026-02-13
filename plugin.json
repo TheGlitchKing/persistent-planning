@@ -1,0 +1,29 @@
+{
+  "name": "persistent-planning",
+  "version": "1.0.0",
+  "description": "Persistent markdown-based planning with task directories, progress tracking, and context engineering for multi-step Claude Code workflows",
+  "author": {
+    "name": "TheGlitchKing"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/TheGlitchKing/persistent-planning",
+  "repository": "https://github.com/TheGlitchKing/persistent-planning.git",
+  "type": "claude-plugin",
+  "main": "skills/SKILL.md",
+  "files": [
+    "skills/",
+    "scripts/",
+    "docs/",
+    ".claude/"
+  ],
+  "keywords": [
+    "planning",
+    "persistent",
+    "markdown",
+    "context-engineering",
+    "task-tracking",
+    "working-memory",
+    "goal-tracking",
+    "manus"
+  ]
+}
