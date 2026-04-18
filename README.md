@@ -43,42 +43,47 @@ For every complex task, create three files:
 
 ## Installation
 
-### Option 1: NPM (Recommended)
+> **v1 → v2 breaking change**: the hand-rolled `persistent-planning install --scope ...` flow was removed. Skills and slash commands are now placed automatically — either by the Claude Code plugin marketplace, or by npm's postinstall symlinking. See [CHANGELOG.md](./CHANGELOG.md) for the full migration guide.
+
+### Option A: Claude Code Plugin Marketplace (Recommended)
+
+```
+/plugin marketplace add TheGlitchKing/persistent-planning
+/plugin install persistent-planning@persistent-planning-marketplace
+```
+
+### Option B: Project-level npm install
+
+Pins the exact version in `package.json`, visible to teammates, CI, and LLMs reading the repo. Postinstall symlinks `skills/persistent-planning/` into `<project>/.claude/skills/`, writes a default `.claude/persistent-planning.json` (update policy `nudge`), and registers a SessionStart hook in `.claude/settings.json` if one is present. Dedup: if the plugin marketplace version is already enabled in `~/.claude/settings.json`, the npm hook registration is skipped.
 
 ```bash
-# Install globally
-npm install -g @theglitchking/persistent-planning
-persistent-planning install --scope user
-
-# Or via npx (no global install)
-npx @theglitchking/persistent-planning install --scope user
+npm install --save-dev @theglitchking/persistent-planning
 ```
 
-### Option 2: Installer Script
+### Option C: Try it (no install)
 
 ```bash
-git clone https://github.com/TheGlitchKing/persistent-planning.git
-cd persistent-planning
-./install.sh --scope user       # Available in all projects
-# OR
-./install.sh --scope project    # Current project only
+npx @theglitchking/persistent-planning status
 ```
 
-### Option 3: Claude Marketplace
+## Update management
 
-```
-/plugin install TheGlitchKing/persistent-planning
-```
-
-### Option 4: Manual Installation
+Each install ships with an update policy. By default the plugin checks npm at session start and prints a one-liner when a newer version is available — no changes made. Opt into automatic updates or silence the check entirely:
 
 ```bash
-mkdir -p ~/.claude/skills
-cp -r persistent-planning/skills/SKILL.md ~/.claude/skills/persistent-planning/SKILL.md
-cp -r persistent-planning/scripts ~/.claude/skills/persistent-planning/scripts
-cp -r persistent-planning/docs ~/.claude/skills/persistent-planning/docs
-cp persistent-planning/.claude/commands/start-planning.md ~/.claude/commands/start-planning.md
+# Slash commands
+/persistent-planning:policy auto    # auto-update on session start
+/persistent-planning:policy nudge   # one-liner nudge only (default)
+/persistent-planning:policy off     # silent
+
+# CLI equivalents
+npx --no @theglitchking/persistent-planning policy auto
+npx --no @theglitchking/persistent-planning status     # installed, latest, policy, hook state
+npx --no @theglitchking/persistent-planning update     # runs npm update + relinks skills
+npx --no @theglitchking/persistent-planning relink     # re-symlink skills only
 ```
+
+Policy resolution order: `PERSISTENT_PLANNING_UPDATE_POLICY` env var → `<project>/.claude/persistent-planning.json` → default `nudge`.
 
 ## Usage
 
@@ -151,23 +156,29 @@ Each task gets its own directory. No conflicts, no overwrites.
 ```
 persistent-planning/
 ├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest
-├── .claude/
-│   └── commands/
-│       └── start-planning.md    # /start-planning command
-├── skills/
-│   └── SKILL.md             # Core skill definition
+│   └── plugin.json          # Plugin manifest (marketplace loader)
+├── bin/
+│   └── persistent-planning.js  # CLI (update/policy/status/relink)
+├── commands/
+│   ├── start-planning.md    # /start-planning slash command
+│   ├── update.md            # /persistent-planning:update
+│   ├── policy.md            # /persistent-planning:policy
+│   ├── status.md            # /persistent-planning:status
+│   └── relink.md            # /persistent-planning:relink
+├── hooks/
+│   ├── hooks.json           # SessionStart hook manifest
+│   └── session-start.js     # Runtime-delegated hook
 ├── scripts/
-│   └── init-planning.sh     # Automated setup script
+│   └── link-skills.js       # Postinstall (runtime-delegated)
+├── skills/
+│   └── persistent-planning/
+│       └── SKILL.md         # Core skill definition
 ├── docs/
 │   ├── reference.md         # Manus context engineering principles
 │   └── examples.md          # Worked examples
-├── install.sh               # Plugin installer
-├── uninstall.sh             # Plugin uninstaller
-├── plugin.json              # Root plugin metadata
-├── README.md                # This file
-├── LICENSE                  # MIT license
-└── CHANGELOG.md             # Version history
+├── README.md
+├── LICENSE
+└── CHANGELOG.md
 ```
 
 ## Cleanup
