@@ -1,0 +1,45 @@
+{
+  "name": "persistent-planning-marketplace",
+  "owner": {
+    "name": "TheGlitchKing",
+    "email": "theglitchking@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "Official marketplace for persistent-planning - Persistent markdown-based planning for Claude Code. Context engineering pattern with task directories, progress tracking, and working memory that persists across sessions.",
+    "version": "2.0.0"
+  },
+  "plugins": [
+    {
+      "name": "persistent-planning",
+      "description": "Persistent markdown-based planning for Claude Code. Uses on-disk markdown files as working memory for planning, progress tracking, and knowledge storage. Plans persist across sessions and support multiple concurrent tasks.",
+      "version": "2.0.0",
+      "author": {
+        "name": "TheGlitchKing"
+      },
+      "homepage": "https://github.com/TheGlitchKing/persistent-planning",
+      "repository": "https://github.com/TheGlitchKing/persistent-planning.git",
+      "license": "MIT",
+      "keywords": [
+        "planning",
+        "persistent",
+        "markdown",
+        "context-engineering",
+        "task-tracking",
+        "working-memory",
+        "goal-tracking",
+        "claude-code"
+      ],
+      "category": "productivity",
+      "tags": [
+        "planning",
+        "context-engineering",
+        "working-memory"
+      ],
+      "source": {
+        "source": "npm",
+        "package": "@theglitchking/persistent-planning"
+      },
+      "strict": true
+    }
+  ]
+}
