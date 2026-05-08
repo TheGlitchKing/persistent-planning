@@ -121,15 +121,14 @@ fi
 
 planning_log "Initializing atom: ${ATOM_NAME} (parent: ${PARENT_TASK}, sequence: ${NEXT_SEQUENCE})"
 
-planning_render_template \
+planning_render_and_log \
   "${TEMPLATE_DIR}/atom.md" \
   "${ATOMS_DIR}/${ATOM_SLUG}.md" \
+  "atom at ${ATOMS_DIR}/${ATOM_SLUG}.md (sequence: ${NEXT_SEQUENCE})" \
   "ATOM_TITLE_PLACEHOLDER=${ATOM_NAME}" \
   "TASK_SLUG_PLACEHOLDER=${PARENT_TASK}" \
   "ATOM_DATE_PLACEHOLDER=${TODAY}" \
   "ATOM_SEQUENCE_PLACEHOLDER=${NEXT_SEQUENCE}"
-
-planning_ok "Created atom at ${ATOMS_DIR}/${ATOM_SLUG}.md (sequence: ${NEXT_SEQUENCE})"
 
 echo ""
 planning_ok "Atom '${ATOM_NAME}' ready"

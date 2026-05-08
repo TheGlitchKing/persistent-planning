@@ -17,16 +17,32 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib/planning.sh"
 
-if [[ -z "${1:-}" ]]; then
-  planning_err "Phase name required."
-  echo ""
-  echo "Usage: bash scripts/init-phase.sh \"Phase Name\""
-  echo ""
-  echo "Examples:"
-  echo "  bash scripts/init-phase.sh \"Foundation\""
-  echo "  bash scripts/init-phase.sh \"Multi-corpus refactor\""
-  exit 1
-fi
+case "${1:-}" in
+  -h|--help)
+    cat <<EOF
+Usage: bash scripts/init-phase.sh "Phase Name"
+
+Creates:
+  .planning/<phase-slug>/phase.md
+  .planning/<phase-slug>/notes.md
+  .planning/.meta/workspace.json (on first phase init, with mode=lg)
+
+Refuses to run unless mode is lg. Run init-planning.sh for sm-mode tasks.
+
+Examples:
+  bash scripts/init-phase.sh "Foundation"
+  bash scripts/init-phase.sh "Multi-corpus refactor"
+EOF
+    exit 0
+    ;;
+  "")
+    planning_err "Phase name required."
+    echo ""
+    echo "Usage: bash scripts/init-phase.sh \"Phase Name\""
+    echo "       bash scripts/init-phase.sh --help"
+    exit 1
+    ;;
+esac
 
 PHASE_NAME="$1"
 PHASE_SLUG=$(planning_slugify "$PHASE_NAME")
@@ -92,24 +108,22 @@ fi
 mkdir -p "$PHASE_DIR"
 
 # Render phase.md
-planning_render_template \
+planning_render_and_log \
   "${TEMPLATE_DIR}/phase.md" \
   "${PHASE_DIR}/phase.md" \
+  "phase.md at ${PHASE_DIR}/phase.md" \
   "PHASE_TITLE_PLACEHOLDER=${PHASE_NAME}" \
   "PHASE_SLUG_PLACEHOLDER=${PHASE_SLUG}" \
   "PHASE_DATE_PLACEHOLDER=${TODAY}"
 
-planning_ok "Created phase.md at ${PHASE_DIR}/phase.md"
-
 # Render notes.md (scoped to the phase)
-planning_render_template \
+planning_render_and_log \
   "${TEMPLATE_DIR}/notes.md" \
   "${PHASE_DIR}/notes.md" \
+  "notes.md at ${PHASE_DIR}/notes.md" \
   "NOTES_TITLE_PLACEHOLDER=${PHASE_NAME} — Notes" \
   "NOTES_SCOPE_PLACEHOLDER=${PHASE_SLUG}" \
   "NOTES_DATE_PLACEHOLDER=${TODAY}"
-
-planning_ok "Created notes.md at ${PHASE_DIR}/notes.md"
 
 # Add .planning/ to .gitignore if missing (preserve existing behavior)
 GITIGNORE="${ROOT}/.gitignore"

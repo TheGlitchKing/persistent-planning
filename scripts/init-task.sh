@@ -92,24 +92,22 @@ planning_log "Initializing task: ${TASK_NAME} (parent: ${PARENT_PHASE})"
 
 mkdir -p "${TASK_DIR}/atoms"
 
-planning_render_template \
+planning_render_and_log \
   "${TEMPLATE_DIR}/task.md" \
   "${TASK_DIR}/task.md" \
+  "task.md at ${TASK_DIR}/task.md" \
   "TASK_TITLE_PLACEHOLDER=${TASK_NAME}" \
   "TASK_SLUG_PLACEHOLDER=${TASK_SLUG}" \
   "PHASE_SLUG_PLACEHOLDER=${PARENT_PHASE}" \
   "TASK_DATE_PLACEHOLDER=${TODAY}"
 
-planning_ok "Created task.md at ${TASK_DIR}/task.md"
-
-planning_render_template \
+planning_render_and_log \
   "${TEMPLATE_DIR}/notes.md" \
   "${TASK_DIR}/notes.md" \
+  "notes.md at ${TASK_DIR}/notes.md" \
   "NOTES_TITLE_PLACEHOLDER=${TASK_NAME} — Notes" \
   "NOTES_SCOPE_PLACEHOLDER=${PARENT_PHASE}/${TASK_SLUG}" \
   "NOTES_DATE_PLACEHOLDER=${TODAY}"
-
-planning_ok "Created notes.md at ${TASK_DIR}/notes.md"
 
 echo ""
 planning_ok "Task '${TASK_NAME}' ready at .planning/${PARENT_PHASE}/${TASK_SLUG}/"

@@ -93,8 +93,14 @@ planning_mode() {
 }
 
 # planning_render_template <template_src> <dest_path> <PLACEHOLDER1=value1> ...
-# Renders a template file by sed-substituting placeholders. Refuses to overwrite
-# an existing dest unless PLANNING_FORCE=1.
+# Renders a template file by sed-substituting placeholders.
+#
+# Return codes:
+#   0  → rendered fresh
+#   2  → skipped (dest already exists; pass PLANNING_FORCE=1 to overwrite)
+#   1  → error (template not found, etc.)
+#
+# Callers can branch on the return code to log accurately.
 planning_render_template() {
   local src="$1"
   local dest="$2"
@@ -108,7 +114,7 @@ planning_render_template() {
   if [[ -f "$dest" && "${PLANNING_FORCE:-0}" != "1" ]]; then
     planning_warn "Destination already exists, skipping: $dest"
     planning_warn "  (re-run with PLANNING_FORCE=1 to overwrite)"
-    return 0
+    return 2
   fi
 
   # Copy template to dest
@@ -124,4 +130,32 @@ planning_render_template() {
     escaped_value=$(printf '%s\n' "$value" | sed -e 's/[\&~]/\\&/g')
     sed -i "s~${key}~${escaped_value}~g" "$dest"
   done
+  return 0
+}
+
+# planning_render_and_log <template_src> <dest_path> <relative_label> <PLACEHOLDER=val> ...
+# Wraps planning_render_template with accurate logging:
+#   - Prints "Created <relative_label>" only when the template was actually rendered
+#   - Prints nothing extra when skipped (the warn from render_template already covered it)
+#   - Lets the script continue (set -e tolerant) regardless of skip vs render
+planning_render_and_log() {
+  local src="$1"
+  local dest="$2"
+  local label="$3"
+  shift 3
+
+  local rc=0
+  planning_render_template "$src" "$dest" "$@" || rc=$?
+  case $rc in
+    0)
+      planning_ok "Created ${label}"
+      ;;
+    2)
+      # Already covered by the warn inside planning_render_template
+      ;;
+    *)
+      planning_err "Failed to render ${label} (rc=$rc)"
+      return $rc
+      ;;
+  esac
 }
