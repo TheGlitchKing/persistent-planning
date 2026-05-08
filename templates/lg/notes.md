@@ -4,7 +4,7 @@ tier: plan
 domains:
   - planning
 status: active
-last_updated: NOTES_DATE_PLACEHOLDER
+last_updated: "NOTES_DATE_PLACEHOLDER"
 plan_kind: notes
 scope: NOTES_SCOPE_PLACEHOLDER
 ---

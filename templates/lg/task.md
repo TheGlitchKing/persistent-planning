@@ -4,7 +4,7 @@ tier: plan
 domains:
   - planning
 status: draft
-last_updated: TASK_DATE_PLACEHOLDER
+last_updated: "TASK_DATE_PLACEHOLDER"
 plan_kind: task
 parent: PHASE_SLUG_PLACEHOLDER
 depends_on: []

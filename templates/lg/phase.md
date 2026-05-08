@@ -4,7 +4,7 @@ tier: plan
 domains:
   - planning
 status: draft
-last_updated: PHASE_DATE_PLACEHOLDER
+last_updated: "PHASE_DATE_PLACEHOLDER"
 plan_kind: phase
 parent: null
 ---

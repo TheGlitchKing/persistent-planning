@@ -4,7 +4,7 @@ tier: plan
 domains:
   - planning
 status: ready
-last_updated: ATOM_DATE_PLACEHOLDER
+last_updated: "ATOM_DATE_PLACEHOLDER"
 plan_kind: atom
 parent: TASK_SLUG_PLACEHOLDER
 sequence: ATOM_SEQUENCE_PLACEHOLDER
