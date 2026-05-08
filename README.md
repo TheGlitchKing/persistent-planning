@@ -7,6 +7,13 @@ A Claude Code plugin that uses on-disk markdown files as "working memory" for pl
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-blue)](https://github.com/TheGlitchKing/persistent-planning)
 
+> [!NOTE]
+> **New in 3.0.0 — sm/lg modes + layered planning.** Solo work and quick spikes still get the original single-task flow (now called **sm mode**). Multi-week projects with multiple contributors get a new **lg mode** with layered phase / task / atom / notes artifacts that subagents can pick up via [semantic-memory](https://github.com/TheGlitchKing/semantic-sidekick)'s MCP. Mode is auto-detected from 90-day git author count; sm preserved bit-for-bit from v2. See [`docs/lg-mode.md`](./docs/lg-mode.md) for the layered model + [`docs/atom-granularity.md`](./docs/atom-granularity.md) for the inline-checkbox-vs-standalone-atom decision rule.
+>
+> Two new slash commands ship in 3.0: `/start-task "Name" --parent <phase>` and `/start-atom "Name" --parent <task>` (lg-mode only). `/start-planning` now dispatches to either flow based on detected mode (with `--mode sm|lg` override).
+>
+> All lg-mode artifacts carry [HEWTD](https://github.com/TheGlitchKing/hit-em-with-the-docs) 2.2.0+ frontmatter (`tier: "plan"`).
+
 ---
 
 ## Why This Plugin?
