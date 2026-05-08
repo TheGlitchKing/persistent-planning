@@ -2,6 +2,63 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.0] - 2026-05-07
+
+### Added — Lg-mode (large/team) layered planning
+
+v3.0 introduces a new **layered planning mode** alongside the existing single-task flow. The mode is auto-detected (90-day git-author-count heuristic; ≥2 distinct authors → lg) and is sticky once chosen.
+
+**Four layers** in lg mode:
+
+- **Phase** — strategic grouping of related tasks (top)
+- **Task** — bounded deliverable; declares `depends_on` + `parallelizable` for subagent team scheduling
+- **Atom** — subagent hand-off unit; sequential within a task; status: `ready | in_progress | done | blocked` with reopen support
+- **Notes** — cross-cutting references scoped to a phase or task
+
+All four layers carry HEWTD-aligned frontmatter (`tier: plan`). `version` is intentionally omitted — HEWTD 2.2.0+ makes it conditionally optional for plan-tier docs.
+
+### Added — `/start-task` and `/start-atom` slash commands
+
+- `/start-task "<name>" --parent <phase>` — adds a task under an existing phase (lg only)
+- `/start-atom "<name>" --parent <task>` — adds an atom (subagent hand-off unit) under a task (lg only); auto-resolves the parent phase by walking `.planning/`; auto-assigns sequence number
+- `/start-planning` updated to dispatch sm vs lg based on detect-mode.sh; accepts `--mode sm|lg` for explicit override
+
+### Added — `.planning/.meta/workspace.json`
+
+Per-project mode tracker. Fields: `schema_version`, `mode`, `auto_detected`, `detected_contributors`, `created_at`. Bootstrapped on first lg-mode init. See `docs/workspace-json.md` for the full schema.
+
+### Added — Documentation
+
+- `docs/lg-mode.md` — full lg-mode guide
+- `docs/atom-granularity.md` — anti-pattern guide for inline-checkbox-vs-standalone-atom
+- `docs/workspace-json.md` — workspace.json schema reference
+
+### Added — Scripts
+
+- `scripts/detect-mode.sh` — sm/lg resolution
+- `scripts/lib/planning.sh` — shared bash helpers
+- `scripts/init-phase.sh`, `scripts/init-task.sh`, `scripts/init-atom.sh` — lg-mode init scripts
+
+### Added — Templates
+
+- `templates/lg/{phase,task,atom,notes}.md` — HEWTD-frontmattered layer templates
+
+### Subagent contract (requires semantic-memory 1.0)
+
+Lg-mode plans are designed to be read by subagents via semantic-memory's MCP verbs (registered conditionally on the `plans` corpus). When semantic-memory is absent, persistent-planning falls back to filesystem-based reads — slash commands still work; subagent comprehension degrades.
+
+### Backwards compatibility
+
+- **Sm mode preserved exactly**: existing `.planning/<task-slug>/{task_plan.md, notes.md}` directories continue to work without changes. The original `/start-planning "Task name"` flow is identical to v2.
+- **Auto-detection is non-disruptive**: existing v2 plans aren't migrated. New `/start-planning` invocations auto-detect mode and create new artifacts using the resolved mode.
+
+### Optional dependencies
+
+- `@theglitchking/hit-em-with-the-docs ^2.2.0` — required for `hewtd validate` to accept lg-mode plan frontmatter (introduces `tier: "plan"` + conditional `version`)
+- `@theglitchking/semantic-memory ^1.0.0` (formerly `semantic-sidekick`) — required for the planning MCP verbs that subagents use to read/mutate lg-mode plans
+
+When neither is installed, lg mode still works as a pure file-authoring flow.
+
 ## [2.0.0] - 2026-04-18
 
 ### ⚠️ Breaking changes

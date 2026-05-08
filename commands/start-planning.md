@@ -1,65 +1,115 @@
 ---
 name: start-planning
-description: "Initialize persistent planning structure for a task. Creates .planning/[task-slug]/ with task_plan.md and notes.md for on-disk working memory that persists across sessions."
+description: "Initialize persistent planning structure. In sm mode (solo/small) creates .planning/[task-slug]/ with task_plan.md + notes.md (v2 behavior). In lg mode (team/large), creates a phase: .planning/[phase-slug]/{phase.md, notes.md} and bootstraps .planning/.meta/workspace.json. Mode auto-detects via 90-day git author count (≥2 = lg) or can be forced with --mode."
 ---
 
 # /start-planning
 
-Initialize the persistent planning structure for a task.
+Initialize the persistent planning structure. Mode (sm vs lg) determines what gets created.
 
 ---
 
 ## Usage
 
 ```
-/start-planning "Your task name here"
+/start-planning "Your name here"                    # auto-detect mode
+/start-planning "Your name here" --mode sm          # force small mode (single task)
+/start-planning "Your name here" --mode lg          # force large mode (phase)
 ```
+
+## Mode behavior
+
+- **sm mode** (solo / small): creates `.planning/<slug>/{task_plan.md, notes.md}`. Single-task flow. Identical to v2 behavior.
+- **lg mode** (team / large): creates `.planning/<phase-slug>/{phase.md, notes.md}` — the new top-layer "phase" artifact. Add tasks under it with `/start-task`, atoms with `/start-atom`. Bootstraps `.planning/.meta/workspace.json`.
+
+Mode is auto-detected via 90-day git author count (≥2 distinct authors → lg, else sm), with a printed decision banner. Once detected (or explicitly set with `--mode`), the choice is sticky in `.planning/.meta/workspace.json` for all subsequent runs.
 
 ## Examples
 
 ```
-/start-planning "Refactor authentication system"
-/start-planning "Build REST API with JWT"
-/start-planning "Fix memory leak in worker process"
+/start-planning "Refactor authentication system"        # solo: makes a task plan
+/start-planning "Foundation"                            # team: makes a phase
+/start-planning "Multi-corpus refactor" --mode lg       # force lg
+/start-planning "Quick spike" --mode sm                 # force sm
 ```
 
 ---
 
 ## What To Do
 
-When the user runs `/start-planning "Task Name"`:
+When the user runs `/start-planning "<name>" [--mode sm|lg]`:
 
-1. Run the init script:
+1. **Resolve mode**:
 ```bash
-bash "$(dirname "$(readlink -f "$0")")/../scripts/init-planning.sh" "Task Name"
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")/../scripts"
+# Honor explicit --mode flag if given; otherwise detect.
+if [ -n "$EXPLICIT_MODE" ]; then
+    MODE="$EXPLICIT_MODE"
+else
+    MODE=$(bash "${SCRIPT_DIR}/detect-mode.sh" --explain)
+fi
 ```
 
-If the script is not found at that path, try these fallbacks in order:
+2. **Dispatch by mode**:
+
+If `MODE=sm`:
 ```bash
-bash scripts/init-planning.sh "Task Name"
-bash ~/.claude/skills/persistent-planning/scripts/init-planning.sh "Task Name"
+bash "${SCRIPT_DIR}/init-planning.sh" "<name>"
 ```
 
-2. After the script completes, remind the user:
-   - Edit `.planning/[task-slug]/task_plan.md` to define phases
-   - Update the Status section as they work
-   - Save findings to `.planning/[task-slug]/notes.md`
-   - Re-read `task_plan.md` before major decisions
+If `MODE=lg`:
+```bash
+bash "${SCRIPT_DIR}/init-phase.sh" "<name>"
+```
+
+If `--mode lg` was passed but workspace.json already exists with `mode: sm` (or vice versa), update workspace.json to the new mode (the override sticks).
+
+3. **After the script completes**:
+   - sm mode: remind the user to edit `task_plan.md`, update `Status`, save to `notes.md`
+   - lg mode: remind the user to add tasks via `/start-task "<task name>" --parent <phase-slug>`
+
+If a script isn't found at the resolved path, try these fallbacks in order:
+```bash
+bash scripts/init-phase.sh "<name>"          # for lg
+bash scripts/init-planning.sh "<name>"        # for sm
+bash ~/.claude/skills/persistent-planning/scripts/init-phase.sh "<name>"
+bash ~/.claude/skills/persistent-planning/scripts/init-planning.sh "<name>"
+```
 
 ---
 
 ## What It Creates
 
+### sm mode
 ```
 .planning/
-└── [task-slug]/
-    ├── task_plan.md    # Track phases and progress
+└── <slug>/
+    ├── task_plan.md    # Track phases inline + progress
     └── notes.md        # Store research and findings
 ```
 
-## Task Slug Conversion
+### lg mode
+```
+.planning/
+├── .meta/
+│   └── workspace.json    # {mode: "lg", auto_detected: true, ...}
+└── <phase-slug>/
+    ├── phase.md          # HEWTD-frontmattered top-layer artifact
+    └── notes.md          # Cross-cutting notes for the phase
+```
 
-Task names are converted to URL-friendly slugs:
-- "Refactor Authentication" -> `refactor-authentication`
-- "Build REST API" -> `build-rest-api`
-- "Fix Bug #123" -> `fix-bug-123`
+Add tasks under a phase with `/start-task "<name>" --parent <phase-slug>`.
+
+## Slug conversion
+
+Names are converted to URL-friendly slugs:
+- "Refactor Authentication" → `refactor-authentication`
+- "Multi-Corpus Refactor" → `multi-corpus-refactor`
+- "Fix Bug #123" → `fix-bug-123`
+
+## See also
+
+- `/start-task` — add a task under a phase (lg mode only)
+- `/start-atom` — add an atom (subagent hand-off unit) under a task (lg mode only)
+- `docs/workspace-json.md` — workspace.json schema reference
+- `docs/lg-mode.md` — full lg-mode guide (phase / task / atom / notes layer model)
