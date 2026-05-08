@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.0.1] - 2026-05-08
+
+### Fixed
+- **Critical: lg-mode init scripts and templates were excluded from the npm package.** The 3.0.0 release had `scripts/link-skills.js` (singular file) in the package.json `files` array instead of `scripts/` (whole dir), and `templates/` was missing entirely. As a result, users installing v3.0.0 got the slash command markdown but the underlying `init-phase.sh`, `init-task.sh`, `init-atom.sh`, `detect-mode.sh`, `lib/planning.sh`, and the four lg-mode templates (`phase.md`, `task.md`, `atom.md`, `notes.md`) were all missing — meaning lg mode silently broke on first invocation.
+
+  This patch updates the `files` array to include `scripts/` and `templates/` directories, and bumps to 3.0.1. v3.0.0 should be considered broken; consumers should upgrade to 3.0.1 immediately.
+
+### How this happened
+The `files` array was the legacy v2 contents (which only needed `scripts/link-skills.js`). When v3.0 added new scripts and templates I missed updating the array. Caught when verifying the published 3.0.0 tarball contents.
+
 ## [3.0.0] - 2026-05-07
 
 ### Added — Lg-mode (large/team) layered planning
