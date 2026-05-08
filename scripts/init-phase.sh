@@ -1,0 +1,127 @@
+#!/bin/bash
+###############################################################################
+# init-phase.sh - Create a new phase in lg-mode persistent-planning
+#
+# Usage:
+#   bash scripts/init-phase.sh "Phase Name"
+#
+# Creates:
+#   .planning/<phase-slug>/phase.md         (HEWTD-frontmattered phase template)
+#   .planning/<phase-slug>/notes.md         (cross-cutting notes for the phase)
+#   .planning/.meta/workspace.json          (mode = lg, on first phase init)
+#
+# Refuses to run unless mode is lg. Run init-planning.sh for sm-mode tasks.
+###############################################################################
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/lib/planning.sh"
+
+if [[ -z "${1:-}" ]]; then
+  planning_err "Phase name required."
+  echo ""
+  echo "Usage: bash scripts/init-phase.sh \"Phase Name\""
+  echo ""
+  echo "Examples:"
+  echo "  bash scripts/init-phase.sh \"Foundation\""
+  echo "  bash scripts/init-phase.sh \"Multi-corpus refactor\""
+  exit 1
+fi
+
+PHASE_NAME="$1"
+PHASE_SLUG=$(planning_slugify "$PHASE_NAME")
+
+if [[ -z "$PHASE_SLUG" ]]; then
+  planning_err "Phase name must contain at least one alphanumeric character."
+  exit 1
+fi
+
+# Refuse to run in sm mode
+MODE=$(planning_mode)
+if [[ "$MODE" != "lg" ]]; then
+  planning_err "Current mode is '$MODE' but init-phase.sh requires lg mode."
+  echo ""
+  echo "Switch to lg mode by running:"
+  echo "  /start-planning --mode lg \"<phase name>\""
+  echo "or by editing .planning/.meta/workspace.json directly."
+  exit 1
+fi
+
+ROOT=$(planning_root)
+PLANNING="$(planning_dir)"
+META="$(planning_meta_dir)"
+WORKSPACE_JSON="$(planning_workspace_json)"
+TODAY=$(planning_today)
+PHASE_DIR="${PLANNING}/${PHASE_SLUG}"
+TEMPLATE_DIR="${ROOT}/templates/lg"
+
+# Fallback: when run from the installed plugin location, templates live in the
+# plugin's own directory, not the project root.
+if [[ ! -d "$TEMPLATE_DIR" ]]; then
+  TEMPLATE_DIR="${SCRIPT_DIR}/../templates/lg"
+fi
+if [[ ! -d "$TEMPLATE_DIR" ]]; then
+  planning_err "Cannot locate templates/lg directory. Tried:"
+  echo "  ${ROOT}/templates/lg"
+  echo "  ${SCRIPT_DIR}/../templates/lg"
+  exit 1
+fi
+
+planning_log "Initializing phase: ${PHASE_NAME}"
+
+# Bootstrap .planning/.meta/workspace.json if missing
+mkdir -p "$META"
+if [[ ! -f "$WORKSPACE_JSON" ]]; then
+  CONTRIB=0
+  if command -v git >/dev/null 2>&1 && git -C "$ROOT" rev-parse --git-dir >/dev/null 2>&1; then
+    CONTRIB=$(git -C "$ROOT" log --since="90 days ago" --format='%ae' 2>/dev/null | sort -u | wc -l | tr -d ' ')
+  fi
+  cat > "$WORKSPACE_JSON" <<EOF
+{
+  "schema_version": "1.0",
+  "mode": "lg",
+  "auto_detected": true,
+  "detected_contributors": ${CONTRIB},
+  "created_at": "$(date -Iseconds)"
+}
+EOF
+  planning_ok "Created .planning/.meta/workspace.json (mode=lg, contributors=${CONTRIB})"
+fi
+
+# Create phase directory
+mkdir -p "$PHASE_DIR"
+
+# Render phase.md
+planning_render_template \
+  "${TEMPLATE_DIR}/phase.md" \
+  "${PHASE_DIR}/phase.md" \
+  "PHASE_TITLE_PLACEHOLDER=${PHASE_NAME}" \
+  "PHASE_SLUG_PLACEHOLDER=${PHASE_SLUG}" \
+  "PHASE_DATE_PLACEHOLDER=${TODAY}"
+
+planning_ok "Created phase.md at ${PHASE_DIR}/phase.md"
+
+# Render notes.md (scoped to the phase)
+planning_render_template \
+  "${TEMPLATE_DIR}/notes.md" \
+  "${PHASE_DIR}/notes.md" \
+  "NOTES_TITLE_PLACEHOLDER=${PHASE_NAME} — Notes" \
+  "NOTES_SCOPE_PLACEHOLDER=${PHASE_SLUG}" \
+  "NOTES_DATE_PLACEHOLDER=${TODAY}"
+
+planning_ok "Created notes.md at ${PHASE_DIR}/notes.md"
+
+# Add .planning/ to .gitignore if missing (preserve existing behavior)
+GITIGNORE="${ROOT}/.gitignore"
+if [[ -f "$GITIGNORE" ]] && ! grep -q "^\.planning/" "$GITIGNORE"; then
+  echo ".planning/" >> "$GITIGNORE"
+  planning_ok "Added .planning/ to .gitignore"
+fi
+
+echo ""
+planning_ok "Phase '${PHASE_NAME}' ready at .planning/${PHASE_SLUG}/"
+echo ""
+echo "Next steps:"
+echo "  1. Edit .planning/${PHASE_SLUG}/phase.md to describe the phase goal"
+echo "  2. Add tasks with: /start-task \"<task name>\" --parent ${PHASE_SLUG}"
+echo "  3. Add cross-cutting context to .planning/${PHASE_SLUG}/notes.md"
