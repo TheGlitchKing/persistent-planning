@@ -1,5 +1,3 @@
 node_modules/
 dist/
 *.tgz
-.claude/.persistent-planning-update-cache.json
-.claude/settings.local.json

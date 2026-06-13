@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "semantic-vault": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "./node_modules/@theglitchking/semantic-pages/bin/semantic-pages",
+        "--notes",
+        "./.claude/.vault"
+      ]
+    }
+  }
+}
