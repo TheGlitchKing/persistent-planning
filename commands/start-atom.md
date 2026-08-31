@@ -69,7 +69,7 @@ Not every step needs a standalone atom file. The rule of thumb:
 - **Inline checkbox in `task.md`**: simple, self-contained step that doesn't need its own context file. The user (or the active agent) handles it directly.
 - **Standalone atom file via `/start-atom`**: a step that will be **handed off to a subagent**. Atoms get their own files because subagents need explicit inputs / outputs / acceptance criteria they can read structured rather than parse from prose.
 
-See `docs/atom-granularity.md` for full anti-pattern guidance with examples.
+See `.documentation/standards/atom-granularity.md` for full anti-pattern guidance with examples.
 
 ## Sequence semantics
 
@@ -89,5 +89,5 @@ This command refuses to run if the project is in sm mode. To switch:
 
 - `/start-planning` — initialize the planning structure (phase in lg)
 - `/start-task` — add a task under a phase
-- `docs/lg-mode.md` — full lg-mode layer model
-- `docs/atom-granularity.md` — when to spawn an atom file vs. inline checkbox
+- `.documentation/architecture/lg-mode.md` — full lg-mode layer model
+- `.documentation/standards/atom-granularity.md` — when to spawn an atom file vs. inline checkbox

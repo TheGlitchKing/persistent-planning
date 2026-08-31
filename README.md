@@ -8,7 +8,7 @@ A Claude Code plugin that uses on-disk markdown files as "working memory" for pl
 [![Plugin](https://img.shields.io/badge/Claude%20Code-Plugin-blue)](https://github.com/TheGlitchKing/persistent-planning)
 
 > [!NOTE]
-> **New in 3.0.0 — sm/lg modes + layered planning.** Solo work and quick spikes still get the original single-task flow (now called **sm mode**). Multi-week projects with multiple contributors get a new **lg mode** with layered phase / task / atom / notes artifacts that subagents can pick up via [semantic-memory](https://github.com/TheGlitchKing/semantic-sidekick)'s MCP. Mode is auto-detected from 90-day git author count; sm preserved bit-for-bit from v2. See [`docs/lg-mode.md`](./docs/lg-mode.md) for the layered model + [`docs/atom-granularity.md`](./docs/atom-granularity.md) for the inline-checkbox-vs-standalone-atom decision rule.
+> **New in 3.0.0 — sm/lg modes + layered planning.** Solo work and quick spikes still get the original single-task flow (now called **sm mode**). Multi-week projects with multiple contributors get a new **lg mode** with layered phase / task / atom / notes artifacts that subagents can pick up via [semantic-memory](https://github.com/TheGlitchKing/semantic-sidekick)'s MCP. Mode is auto-detected from 90-day git author count; sm preserved bit-for-bit from v2. See [`.documentation/architecture/lg-mode.md`](./.documentation/architecture/lg-mode.md) for the layered model + [`.documentation/standards/atom-granularity.md`](./.documentation/standards/atom-granularity.md) for the inline-checkbox-vs-standalone-atom decision rule.
 >
 > Two new slash commands ship in 3.0: `/start-task "Name" --parent <phase>` and `/start-atom "Name" --parent <task>` (lg-mode only). `/start-planning` now dispatches to either flow based on detected mode (with `--mode sm|lg` override).
 >
@@ -180,12 +180,40 @@ persistent-planning/
 ├── skills/
 │   └── persistent-planning/
 │       └── SKILL.md         # Core skill definition
-├── docs/
-│   ├── reference.md         # Manus context engineering principles
-│   └── examples.md          # Worked examples
+├── templates/lg/            # phase / task / atom / notes templates (lg mode)
+├── tests/
+│   └── run.sh               # bash smoke tests (npm test)
+├── .documentation/          # hewtd-managed docs — start at INDEX.md
+│   ├── architecture/        # lg-mode layer model, context-engineering rationale
+│   ├── standards/           # mandatory closing phases, atom granularity
+│   ├── reference/           # workspace.json schema
+│   ├── testing/             # test suite guide
+│   └── quickstart/          # worked examples
 ├── README.md
 ├── LICENSE
 └── CHANGELOG.md
+```
+
+## Documentation
+
+Docs are managed by [hit-em-with-the-docs](https://github.com/TheGlitchKing/hit-em-with-the-docs) and live in `.documentation/`, split by domain. Start at [`.documentation/INDEX.md`](./.documentation/INDEX.md).
+
+| Doc | What it covers |
+|---|---|
+| [Lg-Mode Layered Planning Guide](./.documentation/architecture/lg-mode.md) | phase / task / atom / notes layer model, scheduling, subagent contract |
+| [Manus Context Engineering Principles](./.documentation/architecture/context-engineering-principles.md) | the rationale the whole plugin is built on |
+| [Mandatory Closing Phases](./.documentation/standards/mandatory-closing-phases.md) | the two phases every plan must end with, and why |
+| [Atom Granularity](./.documentation/standards/atom-granularity.md) | inline checkbox vs. standalone atom file |
+| [workspace.json Reference](./.documentation/reference/workspace-json.md) | mode tracker schema |
+| [Test Suite](./.documentation/testing/test-suite.md) | what `npm test` covers, how to add a case |
+| [Worked Examples](./.documentation/quickstart/examples.md) | end-to-end planning walkthroughs |
+
+`INDEX.md` and `REGISTRY.md` are generated — change the documents, then run `npx hewtd maintain --quick`.
+
+## Testing
+
+```bash
+npm test          # bash smoke tests over the init scripts (tests/run.sh)
 ```
 
 ## Cleanup

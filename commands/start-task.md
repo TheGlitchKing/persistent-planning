@@ -79,5 +79,5 @@ That writes `.planning/.meta/workspace.json` with `mode: "lg"` and creates the f
 
 - `/start-planning` — initialize the planning structure (phase in lg, task in sm)
 - `/start-atom` — add an atom under a task
-- `docs/lg-mode.md` — full lg-mode layer model
-- `docs/atom-granularity.md` — when to spawn an atom file vs. add an inline checkbox
+- `.documentation/architecture/lg-mode.md` — full lg-mode layer model
+- `.documentation/standards/atom-granularity.md` — when to spawn an atom file vs. add an inline checkbox

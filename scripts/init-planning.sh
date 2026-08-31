@@ -105,6 +105,16 @@ if [ ! -f "$TASK_PLAN_FILE" ]; then
 - [ ] Phase 2: Research/gather information
 - [ ] Phase 3: Execute/build
 - [ ] Phase 4: Review and deliver
+- [ ] Phase 5: Validate success through comprehensive testing (MANDATORY)
+- [ ] Phase 6: Documentation pass -- create/update/deprecate docs (MANDATORY)
+
+> Phases 5 and 6 are mandatory and MUST stay the last two phases of this plan.
+> Insert new work above them; never after. Renumber them if you add phases.
+>
+> - **Validate success**: prove the work with tests that fail if the change breaks.
+> - **Documentation pass**: create/update/deprecate every doc this change touches --
+>   what it is, where it lives, how to fix it, how to operate it, why it matters.
+>   If hit-em-with-the-docs is installed, use it for this pass.
 
 ## Key Questions
 1. [Question to answer]

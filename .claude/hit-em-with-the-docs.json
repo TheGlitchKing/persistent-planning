@@ -1,0 +1,23 @@
+{
+  "updatePolicy": "nudge",
+  "domains": [
+    {
+      "id": "reference",
+      "name": "Reference",
+      "description": "Schema, frontmatter, and CLI reference material for the planning artifacts",
+      "keywords": [
+        "schema",
+        "frontmatter",
+        "workspace.json",
+        "field",
+        "enum",
+        "cli",
+        "flags",
+        "reference",
+        "contract"
+      ],
+      "loadPriority": 7,
+      "category": "development"
+    }
+  ]
+}

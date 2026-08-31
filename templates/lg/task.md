@@ -27,7 +27,7 @@ via `/start-atom "Atom name" --parent TASK_SLUG_PLACEHOLDER` — these become fi
 under `atoms/` that subagents read via the planning MCP.
 
 Inline checkbox vs. standalone atom file — see anti-pattern doc:
-docs/atom-granularity.md.]
+.documentation/standards/atom-granularity.md.]
 
 - [ ] (no atoms yet — add inline checkboxes here for simple atoms,
       or run `/start-atom "Atom name" --parent TASK_SLUG_PLACEHOLDER` for complex ones)

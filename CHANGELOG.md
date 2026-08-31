@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added — Mandatory closing phases (#5)
+
+Every plan now ends with the same two units of work, seeded by the templates so an agent never has to remember them:
+
+1. **Validate success through comprehensive testing**
+2. **Documentation pass — create/update/deprecate docs**
+
+- **sm mode**: `task_plan.md` seeds 6 phases instead of 4; phases 5 and 6 are the mandatory pair, marked `MANDATORY`.
+- **lg mode**: `templates/lg/phase.md` seeds the pair as the last two task checkboxes. A phase cannot be marked `done` until both are `done`, and neither may be `parallelizable`.
+- Both templates carry the ordering rule inline: new work is inserted **above** the pair, never after it.
+
+### Added — Test suite
+
+`tests/run.sh` — plain bash asserts (no framework), wired to `npm test`. 21 assertions covering sm/lg init, the closing-phase ordering, slug conversion, template placeholder substitution, atom sequence auto-increment, idempotent re-runs, and the lg-mode guard on `init-phase.sh`.
+
+### Changed — Documentation moved to hit-em-with-the-docs
+
+`docs/` is gone; documentation now lives in a hewtd-managed `.documentation/` tree, split by domain:
+
+| Was | Now |
+|---|---|
+| `docs/lg-mode.md` | `.documentation/architecture/lg-mode.md` |
+| `docs/reference.md` | `.documentation/architecture/context-engineering-principles.md` |
+| `docs/atom-granularity.md` | `.documentation/standards/atom-granularity.md` |
+| `docs/workspace-json.md` | `.documentation/reference/workspace-json.md` |
+| `docs/examples.md` | `.documentation/quickstart/examples.md` |
+
+New docs: `.documentation/standards/mandatory-closing-phases.md` and `.documentation/testing/test-suite.md`. A custom `reference` domain is registered in `.claude/hit-em-with-the-docs.json`. The npm `files` array now ships `.documentation/` in place of `docs/`.
+
+Links in older CHANGELOG entries still point at the old `docs/` paths; they are left as written, since they describe the layout as it was at those releases.
+
 ## [3.0.1] - 2026-05-08
 
 ### Fixed

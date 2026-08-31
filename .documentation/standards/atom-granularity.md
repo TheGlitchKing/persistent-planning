@@ -2,13 +2,20 @@
 title: Atom Granularity (anti-pattern guide)
 tier: standard
 domains:
-  - planning
-status: active
-last_updated: 2026-05-07
-version: 1.0.0
+  - standards
 audience:
   - developers
-purpose: When to spawn a standalone atom file vs. add an inline atom checkbox to task.md. The atom layer is load-bearing for subagent hand-off; this doc keeps it from being misused.
+tags: []
+status: active
+last_updated: '2026-05-07'
+version: 1.0.0
+purpose: When to spawn a standalone atom file vs. add an inline atom checkbox to
+  task.md. The atom layer is load-bearing for subagent hand-off; this doc keeps
+  it from being misused.
+estimated_read_time: 3 minutes
+word_count: 556
+last_validated: '2026-08-31'
+backlinks: []
 ---
 
 # Atom Granularity
