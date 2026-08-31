@@ -1,6 +1,6 @@
 {
   "name": "@theglitchking/persistent-planning",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Persistent markdown-based planning with task directories, progress tracking, and context engineering for multi-step Claude Code workflows",
   "type": "module",
   "bin": {
@@ -18,6 +18,7 @@
     "templates/",
     "skills/",
     ".documentation/",
+    "!.documentation/reports",
     ".claude-plugin/",
     "README.md",
     "LICENSE",
