@@ -7,7 +7,8 @@
     "persistent-planning": "bin/persistent-planning.js"
   },
   "scripts": {
-    "postinstall": "node scripts/link-skills.js"
+    "postinstall": "node scripts/link-skills.js",
+    "test": "bash tests/run.sh"
   },
   "files": [
     "bin/",
@@ -16,7 +17,7 @@
     "scripts/",
     "templates/",
     "skills/",
-    "docs/",
+    ".documentation/",
     ".claude-plugin/",
     "README.md",
     "LICENSE",
@@ -57,6 +58,7 @@
     "commander": "^14.0.0"
   },
   "devDependencies": {
+    "@theglitchking/hit-em-with-the-docs": "^2.9.0",
     "@theglitchking/semantic-pages": "^0.10.0"
   }
 }

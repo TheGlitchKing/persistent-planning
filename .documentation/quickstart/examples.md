@@ -1,3 +1,23 @@
+---
+title: 'Examples: Persistent Planning in Action'
+tier: plan
+domains:
+  - quickstart
+audience:
+  - all
+tags:
+  - authentication
+status: active
+last_updated: '2026-08-31'
+version: 1.0.0
+purpose: '**User Request:** "Research the benefits of morning exercise and write
+  a summary"'
+estimated_read_time: 1 minute
+word_count: 136
+last_validated: '2026-08-31'
+backlinks: []
+---
+
 # Examples: Persistent Planning in Action
 
 ## Example 1: Research Task

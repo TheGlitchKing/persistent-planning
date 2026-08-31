@@ -2,13 +2,19 @@
 title: workspace.json schema
 tier: standard
 domains:
-  - planning
-status: active
-last_updated: 2026-05-07
-version: 1.0.0
+  - reference
 audience:
   - developers
-purpose: Document the .planning/.meta/workspace.json schema introduced in v3.0 for sm/lg mode tracking
+tags: []
+status: active
+last_updated: '2026-05-07'
+version: 1.0.0
+purpose: Document the .planning/.meta/workspace.json schema introduced in v3.0
+  for sm/lg mode tracking
+estimated_read_time: 2 minutes
+word_count: 358
+last_validated: '2026-08-31'
+backlinks: []
 ---
 
 # `workspace.json` schema (v3.0)

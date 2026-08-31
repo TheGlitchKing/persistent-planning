@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A Claude Code **plugin** (not an app): markdown skills, slash commands, bash init scripts, and a thin CLI. There is no build step, no test suite, and no bundler. "Running" it means invoking the shell scripts or the CLI directly.
+A Claude Code **plugin** (not an app): markdown skills, slash commands, bash init scripts, and a thin CLI. There is no build step and no bundler. "Running" it means invoking the shell scripts or the CLI directly.
 
 ```bash
+npm test                                       # tests/run.sh — bash smoke tests over the init scripts
+
 # Exercise the init scripts (they write into $CLAUDE_PROJECT_DIR or $PWD)
 bash scripts/detect-mode.sh --explain          # prints sm|lg + why
 bash scripts/init-planning.sh "Some task"      # sm mode
@@ -20,7 +22,7 @@ node bin/persistent-planning.js status
 node scripts/link-skills.js                    # postinstall: symlink skills into .claude/skills/
 ```
 
-Test manually against a throwaway dir: `CLAUDE_PROJECT_DIR=/tmp/pp-test bash scripts/init-phase.sh "X"`. The scripts are idempotent — they skip existing files and warn rather than overwrite.
+`tests/run.sh` is plain bash asserts (no framework) running the real scripts against `mktemp -d` workspaces — see `.documentation/testing/test-suite.md`. Ad-hoc: `CLAUDE_PROJECT_DIR=/tmp/pp-test bash scripts/init-phase.sh "X"`. The scripts are idempotent — they skip existing files and warn rather than overwrite.
 
 ## Architecture
 
@@ -42,6 +44,10 @@ Layer vocabulary is canonical (**phase / task / atom / notes**) and appears in t
 **Frontmatter contract.** Every `templates/lg/*.md` artifact carries HEWTD 2.2.0+ frontmatter with `tier: plan` and `plan_kind: phase|task|atom`; `version` is deliberately omitted (optional for plan tier). Status enums differ by layer: phase/task use `draft|active|paused|done|archived`, atoms use `ready|in_progress|done|blocked` (+ reopen with `reopened_at:`). This frontmatter is what makes plans readable by semantic-memory's MCP for subagent hand-off — changing it breaks that integration.
 
 **Template rendering** is sed placeholder substitution (`FOO_PLACEHOLDER=value` args). Template dir is resolved as `$CLAUDE_PROJECT_DIR/templates/lg` first, then `$SCRIPT_DIR/../templates/lg` — the second is the real path for installed users; keep both fallbacks when touching path logic.
+
+**Every plan ends with two mandatory phases** — validate via testing, then a documentation pass — seeded into `scripts/init-planning.sh` (sm, phases 5-6) and `templates/lg/phase.md` (lg, closing tasks). They must stay last; `tests/run.sh` asserts the ordering. Rationale in `.documentation/standards/mandatory-closing-phases.md`.
+
+**Docs are hewtd-managed.** They live in `.documentation/<domain>/`, not `docs/`. Create with `npx hewtd integrate <file> -a`, retire with `npx hewtd archive <file>`, regenerate indexes with `npx hewtd maintain --quick`. `INDEX.md`/`REGISTRY.md` are generated — editing them by hand is denied by a guard and overwritten anyway. A custom `reference` domain is registered in `.claude/hit-em-with-the-docs.json`.
 
 ## Release checklist
 

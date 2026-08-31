@@ -2,13 +2,20 @@
 title: Lg-Mode Layered Planning Guide
 tier: guide
 domains:
-  - planning
-status: active
-last_updated: 2026-05-07
-version: 1.0.0
+  - architecture
 audience:
   - developers
-purpose: Full guide to lg-mode (large/team) persistent-planning — phase / task / atom / notes layered model, scheduling defaults, subagent contract, and integration with semantic-memory MCP.
+tags: []
+status: active
+last_updated: '2026-05-07'
+version: 1.0.0
+purpose: Full guide to lg-mode (large/team) persistent-planning — phase / task /
+  atom / notes layered model, scheduling defaults, subagent contract, and
+  integration with semantic-memory MCP.
+estimated_read_time: 4 minutes
+word_count: 663
+last_validated: '2026-08-31'
+backlinks: []
 ---
 
 # Lg-Mode (Layered Planning)

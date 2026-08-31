@@ -2,3 +2,7 @@ node_modules/
 dist/
 *.tgz
 .claude/.semantic-memory/
+
+# hewtd generated audit/maintenance reports (timestamped, regenerated on demand)
+.documentation/reports/*.md
+!.documentation/reports/INDEX.md

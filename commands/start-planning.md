@@ -111,5 +111,5 @@ Names are converted to URL-friendly slugs:
 
 - `/start-task` — add a task under a phase (lg mode only)
 - `/start-atom` — add an atom (subagent hand-off unit) under a task (lg mode only)
-- `docs/workspace-json.md` — workspace.json schema reference
-- `docs/lg-mode.md` — full lg-mode guide (phase / task / atom / notes layer model)
+- `.documentation/reference/workspace-json.md` — workspace.json schema reference
+- `.documentation/architecture/lg-mode.md` — full lg-mode guide (phase / task / atom / notes layer model)

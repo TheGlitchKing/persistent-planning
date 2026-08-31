@@ -1,4 +1,23 @@
-# Reference: Manus Context Engineering Principles
+---
+title: Manus Context Engineering Principles
+tier: reference
+domains:
+  - architecture
+audience:
+  - developers
+tags: []
+status: active
+last_updated: '2026-08-31'
+version: 1.0.0
+purpose: Based on the context engineering principles from Manus, the AI agent
+  company acquired by Meta for $2 billion in December 2025.
+estimated_read_time: 3 minutes
+word_count: 428
+last_validated: '2026-08-31'
+backlinks: []
+---
+
+# Manus Context Engineering Principles
 
 Based on the context engineering principles from Manus, the AI agent company acquired by Meta for $2 billion in December 2025.
 
