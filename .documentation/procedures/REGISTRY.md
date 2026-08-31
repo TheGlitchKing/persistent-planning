@@ -16,13 +16,26 @@ purpose: Quick reference for procedures documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 0 |
+| Documents | 1 |
 | Category | features |
 | Load Priority | 6/10 |
 
-## Documents
+## Active Documents
 
-*No documents in this domain yet.*
+- [Plan Completion and Archive](plan-completion-and-archive.md)
+
+## Recently Updated
+
+- [Plan Completion and Archive](plan-completion-and-archive.md) - 2026-08-31
+
+## By Status
+
+| Status | Count |
+|--------|-------|
+| active | 1 |
+| draft | 0 |
+| deprecated | 0 |
+| archived | 0 |
 
 ## Keywords
 

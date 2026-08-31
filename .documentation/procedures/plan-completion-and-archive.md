@@ -1,0 +1,151 @@
+---
+title: Plan Completion and Archive
+tier: guide
+domains:
+  - procedures
+audience:
+  - developers
+tags: []
+status: active
+last_updated: '2026-08-31'
+version: 1.0.0
+purpose: How persistent-planning decides a plan is finished, how that reaches
+  the agent automatically, and the procedure for retiring a completed plan into
+  the gitignored .planning/.archive/ directory.
+estimated_read_time: 5 minutes
+word_count: 812
+last_validated: '2026-08-31'
+backlinks: []
+---
+
+# Plan Completion and Archive
+
+## What it is
+
+Two things that only make sense together:
+
+- **Status tracking** — a plan's completion is *derived from the plan artifacts*,
+  not stored anywhere else.
+- **Archive** — a completed plan is moved out of the active `.planning/` tree into
+  a gitignored `.planning/.archive/`, so what remains under `.planning/` is only
+  ever live work.
+
+## Why it matters
+
+The failure this prevents is a finished plan that nobody retires. It sits in
+`.planning/`, and every future session — human or agent — re-reads it, re-reasons
+about whether it is still relevant, and burns context deciding it isn't. Multiply
+by a dozen plans and the working-memory directory becomes the thing you have to
+work around.
+
+The reason completion is *derived* rather than *declared* is drift. A `done: true`
+flag someone has to remember to set is wrong the moment they forget, and nothing
+detects that. Checkbox state cannot drift from the plan, because it **is** the
+plan. Checking the last box is the completion signal; there is no second step to
+forget.
+
+## Where it lives
+
+| Piece | Path |
+|---|---|
+| Status scan (single implementation) | `scripts/plan-status.sh` |
+| Archive operation | `scripts/archive-plan.sh` |
+| Session-start nudge | `hooks/session-start.js` (shells out to `plan-status.sh --nudge`) |
+| Slash commands | `commands/plan-status.md`, `commands/archive-plan.md` |
+| Archived plans | `.planning/.archive/<slug>/` (gitignored) |
+
+## The completion rule
+
+A plan is **COMPLETE** when either holds:
+
+1. Every checkbox in every markdown file under the plan directory is checked, or
+2. The plan's top-level artifact (`phase.md`, `task_plan.md`, or `task.md`)
+   declares `status: done` in frontmatter.
+
+Other verdicts: `blocked` (an atom carries `status: blocked`), `empty` (no
+checkboxes yet), `in progress` (anything else), `archived` (already stamped).
+
+Because plans are seeded with [mandatory closing phases](../standards/mandatory-closing-phases.md),
+a plan cannot read COMPLETE until its work has been tested *and* documented. The
+two features are deliberately coupled: completion means finished, not "the fun
+part is finished."
+
+## How the agent finds out
+
+Three escalating surfaces, cheapest first:
+
+1. **SessionStart hook.** On every session, the hook runs `plan-status.sh --nudge`
+   and merges any result into the session's context: *"persistent-planning: 1
+   plan(s) complete but not archived — <slug>."* Silent when there is nothing to
+   say, so it costs nothing in the normal case.
+2. **`/plan-status`.** The full table, on demand.
+3. **The plan artifact itself.** Both templates carry an `## On Completion`
+   section stating the rule and the archive command, so an agent reading only the
+   plan still learns the protocol.
+
+## How to operate it
+
+```bash
+/plan-status                     # what is in progress, blocked, complete
+/archive-plan <slug>             # retire one completed plan
+/archive-plan --all-complete     # retire every completed plan
+/archive-plan <slug> --dry-run   # show the move without making it
+/archive-plan <slug> --force     # retire an unfinished plan (deliberate)
+```
+
+Machine-readable forms for scripts and subagents:
+
+```bash
+bash scripts/plan-status.sh --complete   # one complete plan slug per line
+bash scripts/plan-status.sh --nudge      # one line, or nothing
+```
+
+Archiving performs four steps:
+
+1. Verifies completion (skipped under `--force`).
+2. Ensures `.planning/.archive/` exists and is in `.gitignore`.
+3. Moves `.planning/<slug>/` → `.planning/.archive/<slug>/`, preferring `git mv`
+   when the plan is tracked so history follows it.
+4. Stamps the top-level artifact: `status: archived` + `archived_on` in
+   frontmatter, or a dated footer for sm plans that have none.
+
+**Nothing is ever deleted.** Archiving is a move plus a stamp.
+
+## Restoring an archived plan
+
+```bash
+mv .planning/.archive/<slug> .planning/<slug>
+```
+
+Then set `status:` back to `active` and remove the `archived_on` stamp. The plan
+resumes reading as in-progress the moment a box is unchecked.
+
+## How to fix it
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Finished plan never reads COMPLETE | A checkbox is still unchecked somewhere in the tree — often in a nested atom file | `bash scripts/plan-status.sh` shows `checked/total`; grep the plan for `- [ ]` |
+| A brand-new plan reads COMPLETE | Its template checkboxes were checked without doing the work, or the plan has no checkboxes and `status: done` was set by hand | Uncheck, or correct the frontmatter |
+| `archive-plan.sh` refuses | The plan is genuinely incomplete | Finish it. `--force` exists for deliberate abandonment, not for impatience |
+| "Already archived: … exists" | A plan with that slug was archived before | Rename or move the existing entry under `.planning/.archive/` first |
+| Nudge never appears | No `.planning/` directory, or no plan is complete, or the hook is not registered | `npx persistent-planning status` reports hook registration |
+| Archived plans show up in `git status` | `.planning/` is tracked in this repo and the ignore line was added after the fact | Ensure `.gitignore` has `.planning/.archive/`; `git rm -r --cached .planning/.archive` if already tracked |
+
+## Design notes
+
+**One implementation of the scan.** The hook, the slash command, and
+`archive-plan.sh`'s completion check all shell out to `plan-status.sh`. A second
+copy of the "is this done?" rule in JavaScript would be a second copy that could
+disagree.
+
+**The hook merges rather than appends.** `@theglitchking/claude-plugin-runtime`
+owns the single `SessionStart` JSON response and exposes no hook for adding to it,
+and emitting a second response line would be invalid. `hooks/session-start.js`
+intercepts that one write and merges the nudge into the same payload, failing
+open — if the payload is not the shape it expects, it is written through
+untouched and the update check still works.
+
+**Archive is gitignored on purpose.** A completed plan is a record of how *this
+machine* got somewhere. Sharing it with every clone would grow the repository
+with reasoning nobody reads. If a particular plan is worth keeping, promote its
+findings into a real doc — which is what the mandatory documentation phase is for.

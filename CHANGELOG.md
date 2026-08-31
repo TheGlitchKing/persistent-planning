@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added — Status tracking and completion archive (#4)
+
+Plans now report their own completion, and completed plans get retired out of the active tree.
+
+**Completion is derived, not declared.** A plan is COMPLETE when every checkbox under it is checked, or when its top-level artifact (`phase.md` / `task_plan.md` / `task.md`) declares `status: done`. Nothing has to be remembered or kept in sync — checking the last box *is* the signal. Combined with the mandatory closing phases above, a plan cannot read COMPLETE until its work has been tested and documented.
+
+- `scripts/plan-status.sh` — the single implementation of the scan. Default output is a table (`in progress` / `blocked` / `COMPLETE` / `empty` / `archived` with a checked/total count); `--complete` prints one complete slug per line; `--nudge` prints a one-line notice or nothing.
+- `scripts/archive-plan.sh` — moves `.planning/<slug>/` to `.planning/.archive/<slug>/`, ensures that path is gitignored, and stamps the top-level artifact `status: archived` + `archived_on` (or a dated footer for sm plans without frontmatter). Prefers `git mv` when the plan is tracked. Refuses incomplete plans unless `--force`; also supports `--all-complete` and `--dry-run`. Nothing is ever deleted.
+- `hooks/session-start.js` — now surfaces complete-but-unarchived plans in the session's context. It merges the notice into the runtime's single `SessionStart` response by intercepting that one stdout write, since the runtime exposes no append hook and a second response line would be invalid; it fails open, so the update check is unaffected if the payload isn't the expected shape.
+- `/plan-status` and `/archive-plan` slash commands.
+- Both plan templates gained an `## On Completion` section stating the rule and the archive command, so an agent reading only the plan still learns the protocol.
+
+`.planning/.archive/` is gitignored on purpose: a completed plan is local history. Anything worth sharing gets promoted into a real doc by the mandatory documentation phase.
+
+Test suite grows to 42 assertions. New doc: `.documentation/procedures/plan-completion-and-archive.md`.
+
 ### Added — Mandatory closing phases (#5)
 
 Every plan now ends with the same two units of work, seeded by the templates so an agent never has to remember them:

@@ -24,7 +24,7 @@ purpose: Navigation hub for all documentation
 | [DevOps](#devops) | 0 | Deployment, CI/CD, Docker, environments, infrastructure |
 | [Features](#features) | 0 | Feature implementation guides, admin docs |
 | [Plans](#plans) | 0 | Planning documents, roadmaps, proposals |
-| [Procedures](#procedures) | 0 | Step-by-step operational procedures (SOP) |
+| [Procedures](#procedures) | 1 | Step-by-step operational procedures (SOP) |
 | [Quickstart](#quickstart) | 1 | Setup guides, dev workflow, onboarding |
 | [Security](#security) | 0 | Security, auth, Vault, Keycloak, RLS |
 | [Standards](#standards) | 2 | Coding standards (backend, frontend, database, devops, security) |
@@ -124,7 +124,9 @@ purpose: Navigation hub for all documentation
 
 **Path:** `procedures/`
 
-*No documents yet.*
+| Document | Tier | Status | Updated |
+|----------|------|--------|----------|
+| [Plan Completion and Archive](procedures/plan-completion-and-archive.md) | guide | active | 2026-08-31 |
 
 ---
 

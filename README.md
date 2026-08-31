@@ -168,6 +168,8 @@ persistent-planning/
 │   └── persistent-planning.js  # CLI (update/policy/status/relink)
 ├── commands/
 │   ├── start-planning.md    # /start-planning slash command
+│   ├── plan-status.md       # /plan-status
+│   ├── archive-plan.md      # /archive-plan
 │   ├── update.md            # /persistent-planning:update
 │   ├── policy.md            # /persistent-planning:policy
 │   ├── status.md            # /persistent-planning:status
@@ -176,6 +178,9 @@ persistent-planning/
 │   ├── hooks.json           # SessionStart hook manifest
 │   └── session-start.js     # Runtime-delegated hook
 ├── scripts/
+│   ├── init-*.sh            # planning artifact creation (sm + lg)
+│   ├── plan-status.sh       # completion scan (single implementation)
+│   ├── archive-plan.sh      # retire a completed plan
 │   └── link-skills.js       # Postinstall (runtime-delegated)
 ├── skills/
 │   └── persistent-planning/
@@ -194,6 +199,20 @@ persistent-planning/
 └── CHANGELOG.md
 ```
 
+## Status tracking and archive
+
+A plan is **complete** when every checkbox in it is checked (or its top-level artifact says `status: done`). Completion is derived from the artifacts, so it cannot drift from what the plan actually says — checking the last box *is* the signal.
+
+```
+/plan-status                  # what's in progress, blocked, or complete
+/archive-plan <slug>          # retire a completed plan
+/archive-plan --all-complete  # retire all of them
+```
+
+Archiving moves `.planning/<slug>/` to the gitignored `.planning/.archive/<slug>/` and stamps it `status: archived` + `archived_on`. Nothing is deleted — restore by moving the directory back out.
+
+The SessionStart hook mentions complete-but-unarchived plans at the top of the next session, so a finished plan gets retired instead of rediscovered. Full protocol: [Plan Completion and Archive](./.documentation/procedures/plan-completion-and-archive.md).
+
 ## Documentation
 
 Docs are managed by [hit-em-with-the-docs](https://github.com/TheGlitchKing/hit-em-with-the-docs) and live in `.documentation/`, split by domain. Start at [`.documentation/INDEX.md`](./.documentation/INDEX.md).
@@ -205,6 +224,7 @@ Docs are managed by [hit-em-with-the-docs](https://github.com/TheGlitchKing/hit-
 | [Mandatory Closing Phases](./.documentation/standards/mandatory-closing-phases.md) | the two phases every plan must end with, and why |
 | [Atom Granularity](./.documentation/standards/atom-granularity.md) | inline checkbox vs. standalone atom file |
 | [workspace.json Reference](./.documentation/reference/workspace-json.md) | mode tracker schema |
+| [Plan Completion and Archive](./.documentation/procedures/plan-completion-and-archive.md) | how completion is detected and how plans are retired |
 | [Test Suite](./.documentation/testing/test-suite.md) | what `npm test` covers, how to add a case |
 | [Worked Examples](./.documentation/quickstart/examples.md) | end-to-end planning walkthroughs |
 
@@ -218,12 +238,17 @@ npm test          # bash smoke tests over the init scripts (tests/run.sh)
 
 ## Cleanup
 
-```bash
-# Remove a single task's planning files
-rm -rf .planning/[task-name]/
+Prefer archiving — it keeps the record of what was done:
 
-# Remove all planning files
-rm -rf .planning/
+```bash
+/archive-plan [task-name]
+```
+
+Hard deletion still works, but throws that record away:
+
+```bash
+rm -rf .planning/[task-name]/   # one plan
+rm -rf .planning/               # everything, archive included
 ```
 
 ## Acknowledgments

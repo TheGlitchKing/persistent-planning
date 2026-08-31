@@ -136,9 +136,22 @@ if [ ! -f "$TASK_PLAN_FILE" ]; then
 - Update status after each phase
 - Mark completed phases with [x]
 - Save research to notes.md instead of stuffing context
+
+## On Completion
+This plan is complete when every checkbox above is checked. That IS the
+completion signal -- there is no separate status to remember to flip.
+
+When complete, archive it instead of deleting it:
+
+    /plan-status                  # confirm this plan reads COMPLETE
+    /archive-plan TASK_SLUG_PLACEHOLDER    # -> .planning/.archive/TASK_SLUG_PLACEHOLDER/
+
+Archiving moves this directory to the gitignored .planning/.archive/ and stamps
+it archived. Nothing is destroyed.
 EOF
 
     sed -i "s/TASK_NAME_PLACEHOLDER/${TASK_NAME}/g" "$TASK_PLAN_FILE"
+    sed -i "s/TASK_SLUG_PLACEHOLDER/${TASK_SLUG}/g" "$TASK_PLAN_FILE"
     echo -e "${GREEN}+${NC} Created task_plan.md"
 else
     echo -e "${YELLOW}*${NC} task_plan.md already exists (not overwritten)"

@@ -227,16 +227,28 @@ Large outputs go to files, not context. Keep only paths in working memory.
 ### 5. Log All Errors
 Every error goes in the "Errors Encountered" section. This builds knowledge for future tasks.
 
-### 6. Easy Cleanup
-When a task is complete, delete the task directory:
+### 6. Archive on Completion, Don't Delete
+A plan is **complete** when every checkbox in it is checked (or its top-level
+artifact declares `status: done`). Completion is derived from the artifacts, so
+checking the last box IS the completion signal -- there is no separate state to
+update and no way for it to drift.
+
+When a plan is complete, archive it rather than deleting it:
 ```bash
-rm -rf .planning/[task-name]/
+/plan-status                  # which plans are COMPLETE?
+/archive-plan [task-name]     # -> .planning/.archive/[task-name]/
 ```
 
-Or clean up everything:
-```bash
-rm -rf .planning/
-```
+Archiving moves the plan to the gitignored `.planning/.archive/` and stamps it
+`status: archived` + `archived_on`. The active `.planning/` tree then shows only
+live work. Nothing is destroyed -- restore with
+`mv .planning/.archive/[task-name] .planning/[task-name]`.
+
+The SessionStart hook checks for complete-but-unarchived plans and says so at the
+top of the session, so a finished plan gets retired instead of rediscovered.
+
+Deleting is still available (`rm -rf .planning/[task-name]/`) but throws away the
+record of what was done and why. Prefer the archive.
 
 ## When to Use This Pattern
 
@@ -264,6 +276,9 @@ rm -rf .planning/
 | Overwrite previous plans | Use `/start-planning` (auto-creates unique task dir) |
 | Start executing immediately | Run `/start-planning "task name"` FIRST |
 | Switch tasks without saving | Update task_plan.md before switching |
+| `rm -rf` a finished plan | `/archive-plan <slug>` -- keeps the record, clears the tree |
+| Leave finished plans in `.planning/` | Archive them; the active tree should show only live work |
+| Track completion in your head or in chat | Check the boxes -- the artifact is the status |
 
 ## Advanced Patterns
 
