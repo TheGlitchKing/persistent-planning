@@ -25,7 +25,7 @@ purpose: Complete listing of architecture documentation
 
 | Document | Status | Updated | Words |
 |----------|--------|---------|-------|
-| [Lg-Mode Layered Planning Guide](lg-mode.md) | active | 2026-05-07 | 663 |
+| [Lg-Mode Layered Planning Guide](lg-mode.md) | active | 2026-05-07 | 720 |
 
 ### References
 

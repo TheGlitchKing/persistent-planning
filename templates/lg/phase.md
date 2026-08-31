@@ -41,8 +41,13 @@ so subagent teams can pick them up concurrently.]
 
 Status enum: `draft | active | paused | done | archived`
 
-When all tasks are `done`, mark this phase `done`. When archived, this directory and
-its tasks/atoms move to `.planning/archive/PHASE_SLUG_PLACEHOLDER/`.
+When all tasks are `done`, mark this phase `done`. Checking every box in this phase
+IS the completion signal — `/plan-status` reads it straight off the artifacts.
+
+When complete, retire it with `/archive-plan PHASE_SLUG_PLACEHOLDER`: the whole
+directory (tasks and atoms with it) moves to the gitignored
+`.planning/.archive/PHASE_SLUG_PLACEHOLDER/` and the frontmatter above is stamped
+`status: archived` + `archived_on`. Nothing is destroyed.
 
 ---
 

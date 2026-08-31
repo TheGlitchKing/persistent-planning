@@ -15,6 +15,8 @@ bash scripts/init-planning.sh "Some task"      # sm mode
 bash scripts/init-phase.sh "Some phase"        # lg mode (refuses in sm)
 bash scripts/init-task.sh  "Some task" --parent <phase-slug>
 bash scripts/init-atom.sh  "Some atom" --parent <task-slug>
+bash scripts/plan-status.sh                    # completion table (--complete / --nudge for machines)
+bash scripts/archive-plan.sh <slug>            # retire a completed plan (--all-complete, --force, --dry-run)
 PLANNING_FORCE=1 bash scripts/init-task.sh ... # overwrite existing artifacts
 
 # CLI (update/policy/status/relink; most logic lives in claude-plugin-runtime)
@@ -46,6 +48,10 @@ Layer vocabulary is canonical (**phase / task / atom / notes**) and appears in t
 **Template rendering** is sed placeholder substitution (`FOO_PLACEHOLDER=value` args). Template dir is resolved as `$CLAUDE_PROJECT_DIR/templates/lg` first, then `$SCRIPT_DIR/../templates/lg` — the second is the real path for installed users; keep both fallbacks when touching path logic.
 
 **Every plan ends with two mandatory phases** — validate via testing, then a documentation pass — seeded into `scripts/init-planning.sh` (sm, phases 5-6) and `templates/lg/phase.md` (lg, closing tasks). They must stay last; `tests/run.sh` asserts the ordering. Rationale in `.documentation/standards/mandatory-closing-phases.md`.
+
+**Completion is derived, never declared.** `scripts/plan-status.sh` is the single implementation of "is this plan done?" — every checkbox checked, or `status: done` in the top-level artifact's frontmatter. `hooks/session-start.js`, the `/plan-status` command, and `archive-plan.sh`'s pre-flight check all shell out to it; don't add a second copy of the rule. `archive-plan.sh` moves completed plans into the gitignored `.planning/.archive/` and stamps them — it never deletes. Protocol in `.documentation/procedures/plan-completion-and-archive.md`.
+
+The hook merges its nudge into the runtime's single `SessionStart` JSON response by intercepting the one stdout write — the runtime exposes no append hook, and a second response line would be invalid. It fails open.
 
 **Docs are hewtd-managed.** They live in `.documentation/<domain>/`, not `docs/`. Create with `npx hewtd integrate <file> -a`, retire with `npx hewtd archive <file>`, regenerate indexes with `npx hewtd maintain --quick`. `INDEX.md`/`REGISTRY.md` are generated — editing them by hand is denied by a guard and overwritten anyway. A custom `reference` domain is registered in `.claude/hit-em-with-the-docs.json`.
 

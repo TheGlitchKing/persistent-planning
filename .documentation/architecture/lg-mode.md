@@ -13,7 +13,7 @@ purpose: Full guide to lg-mode (large/team) persistent-planning — phase / task
   atom / notes layered model, scheduling defaults, subagent contract, and
   integration with semantic-memory MCP.
 estimated_read_time: 4 minutes
-word_count: 663
+word_count: 720
 last_validated: '2026-08-31'
 backlinks: []
 ---
@@ -48,8 +48,8 @@ Notes are scoped to either a phase or a task (or both). Notes are NOT part of th
 .planning/
 ├── .meta/
 │   └── workspace.json              # {mode: "lg", auto_detected: true, ...}
-├── archive/
-│   └── <archived-phase-slug>/      # phases moved here on status: archived
+├── .archive/                       # gitignored; completed plans retired here
+│   └── <archived-phase-slug>/      # moved by /archive-plan
 └── <phase-slug>/
     ├── phase.md                    # the phase
     ├── notes.md                    # phase-scoped notes
@@ -73,7 +73,9 @@ Each layer has a status enum tracked in frontmatter:
 
 Status transitions are explicit. Atoms additionally support **reopen** (`done → in_progress`) with a `reopened_at: <iso-timestamp>` audit field for legitimate post-completion fixes.
 
-When a phase is marked `archived`, the entire `<phase-slug>/` directory moves to `archive/<phase-slug>/`. Atoms and tasks within move with it.
+A phase is **complete** when every checkbox under it is checked, or when `phase.md` declares `status: done`. That is derived from the artifacts, so there is no separate state to keep in sync — see [Plan Completion and Archive](../procedures/plan-completion-and-archive.md).
+
+When a phase is retired with `/archive-plan <phase-slug>`, the entire `<phase-slug>/` directory moves to `.planning/.archive/<phase-slug>/` — tasks and atoms with it — and `phase.md` is stamped `status: archived` plus `archived_on`. `.planning/.archive/` is gitignored: a completed plan is local history, not something every clone carries.
 
 ## Scheduling: dependencies-first, then parallelism
 

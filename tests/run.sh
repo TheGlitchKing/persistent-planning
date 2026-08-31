@@ -144,5 +144,113 @@ fi
 rm -rf "$WS"
 
 ###############################################################################
+echo "status tracking: plan-status.sh"
+###############################################################################
+WS=$(new_workspace)
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-planning.sh" "Half Done" >/dev/null
+PLAN="$WS/.planning/half-done/task_plan.md"
+
+assert_eq "" "$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh" --complete)" \
+  "a fresh plan is not reported complete"
+assert_eq "" "$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh" --nudge)" \
+  "no nudge while work is outstanding"
+
+case "$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh")" in
+  *"in progress"*) pass "status table reports an unfinished plan as in progress" ;;
+  *) fail "status table reports an unfinished plan as in progress" ;;
+esac
+
+# Check every box -> the plan is complete. Checkbox state IS the signal.
+sed -i 's/- \[ \]/- [x]/g' "$PLAN"
+assert_eq "half-done" "$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh" --complete)" \
+  "a fully checked plan is reported complete"
+case "$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh" --nudge)" in
+  *"complete but not archived"*) pass "nudge fires for a complete, unarchived plan" ;;
+  *) fail "nudge fires for a complete, unarchived plan" ;;
+esac
+
+# The SessionStart hook must merge that nudge into a single valid JSON response.
+HOOK_OUT=$(CLAUDE_PROJECT_DIR="$WS" node "$REPO_DIR/hooks/session-start.js" 2>/dev/null)
+assert_eq 1 "$(printf '%s' "$HOOK_OUT" | grep -c .)" "SessionStart hook emits exactly one line"
+if printf '%s' "$HOOK_OUT" | node -e '
+  let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{
+    const p=JSON.parse(s);
+    process.exit(p?.hookSpecificOutput?.additionalContext?.includes("complete but not archived")?0:1);
+  })'; then
+  pass "SessionStart hook carries the nudge in additionalContext"
+else
+  fail "SessionStart hook carries the nudge in additionalContext"
+fi
+rm -rf "$WS"
+
+###############################################################################
+echo "archive: archive-plan.sh"
+###############################################################################
+WS=$(new_workspace)
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-planning.sh" "Ship It" >/dev/null
+
+# Refuses an unfinished plan, and leaves it exactly where it was.
+if CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" ship-it >/dev/null 2>&1; then
+  fail "archive-plan.sh refuses an incomplete plan"
+else
+  pass "archive-plan.sh refuses an incomplete plan"
+fi
+assert_file "$WS/.planning/ship-it/task_plan.md" "refused plan stays in the active tree"
+
+# --force overrides the refusal.
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" ship-it --force >/dev/null 2>&1
+assert_file "$WS/.planning/.archive/ship-it/task_plan.md" "--force archives an incomplete plan"
+rm -rf "$WS"
+
+WS=$(new_workspace)
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-planning.sh" "Ship It" >/dev/null
+sed -i 's/- \[ \]/- [x]/g' "$WS/.planning/ship-it/task_plan.md"
+
+# --dry-run must not move anything.
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" ship-it --dry-run >/dev/null
+assert_file "$WS/.planning/ship-it/task_plan.md" "--dry-run leaves the plan in place"
+
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" ship-it >/dev/null
+assert_file "$WS/.planning/.archive/ship-it/task_plan.md" "complete plan is moved into .planning/.archive/"
+if [[ -d "$WS/.planning/ship-it" ]]; then
+  fail "archived plan is gone from the active tree"
+else
+  pass "archived plan is gone from the active tree"
+fi
+assert_contains "$WS/.gitignore" ".planning/.archive/" ".planning/.archive/ is gitignored"
+assert_contains "$WS/.planning/.archive/ship-it/task_plan.md" "**Archived " \
+  "sm plan without frontmatter gets a dated archived footer"
+assert_eq "" "$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh" --complete)" \
+  "an archived plan no longer shows up as complete"
+
+# Archiving twice must not clobber the first archive.
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-planning.sh" "Ship It" >/dev/null
+sed -i 's/- \[ \]/- [x]/g' "$WS/.planning/ship-it/task_plan.md"
+if CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" ship-it >/dev/null 2>&1; then
+  fail "archive-plan.sh refuses to overwrite an existing archive entry"
+else
+  pass "archive-plan.sh refuses to overwrite an existing archive entry"
+fi
+rm -rf "$WS"
+
+# lg mode: frontmatter is stamped rather than a footer appended.
+WS=$(new_workspace)
+mkdir -p "$WS/.planning/.meta"
+echo '{"schema_version":"1.0","mode":"lg"}' > "$WS/.planning/.meta/workspace.json"
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "Foundation" >/dev/null
+sed -i 's/- \[ \]/- [x]/g' "$WS/.planning/foundation/phase.md"
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" --all-complete >/dev/null
+ARCHIVED="$WS/.planning/.archive/foundation/phase.md"
+assert_file "$ARCHIVED" "--all-complete archives every complete plan"
+assert_contains "$ARCHIVED" "status: archived" "lg phase frontmatter is stamped status: archived"
+assert_contains "$ARCHIVED" "archived_on:" "lg phase frontmatter gains archived_on"
+if [[ $(grep -c '^status:' "$ARCHIVED") -eq 1 ]]; then
+  pass "stamping replaces the status field rather than duplicating it"
+else
+  fail "stamping replaces the status field rather than duplicating it"
+fi
+rm -rf "$WS"
+
+###############################################################################
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]
