@@ -130,6 +130,13 @@ planning_render_and_log \
   "ATOM_DATE_PLACEHOLDER=${TODAY}" \
   "ATOM_SEQUENCE_PLACEHOLDER=${NEXT_SEQUENCE}"
 
+# Write the atom into its task's list. Same gap as init-task.sh had with
+# phase.md: the atom file was created and never referenced anywhere (#12).
+planning_insert_list_item \
+  "${TASK_DIR}/task.md" \
+  "## Atoms" \
+  "- [ ] **${ATOM_NAME}** (\`atoms/${ATOM_SLUG}.md\`, sequence: ${NEXT_SEQUENCE})"
+
 echo ""
 planning_ok "Atom '${ATOM_NAME}' ready"
 echo ""

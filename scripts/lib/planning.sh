@@ -159,3 +159,83 @@ planning_render_and_log() {
       ;;
   esac
 }
+
+###############################################################################
+# List maintenance
+#
+# A phase's task list and a task's atom list are stored markdown checkboxes,
+# not derived views — plan-status.sh counts them, and humans edit them. So the
+# init scripts have to write them. Before this existed, init-task.sh never
+# touched phase.md at all and every list was maintained by hand (issue #12).
+###############################################################################
+
+# planning_insert_list_item <file> <section-heading> <line>
+#
+# Inserts <line> into the checkbox list under <section-heading> in <file>:
+#   - above the first item marked MANDATORY, so closers stay last by
+#     construction rather than by anyone remembering;
+#   - after the last item when the section has no MANDATORY entries;
+#   - dropping a "(no ... yet" placeholder item, including its continuation
+#     lines, the first time a real item lands.
+#
+# Idempotent: an identical line already in the section is left alone, so
+# re-running with PLANNING_FORCE=1 cannot double-insert.
+#
+# Anchors on the MANDATORY marker, never on line numbers — the list is a
+# human-editable surface and positions do not survive contact with editing.
+planning_insert_list_item() {
+  local file="$1" heading="$2" line="$3" tmp
+  [[ -f "$file" ]] || return 0
+
+  tmp="${file}.pp-tmp.$$"
+  awk -v heading="$heading" -v newline="$line" '
+    { L[NR] = $0; if ($0 == newline) seen = 1 }
+    END {
+      if (seen) { for (i = 1; i <= NR; i++) print L[i]; exit }
+
+      # Section bounds: heading .. next "## " heading (or EOF).
+      s = 0
+      for (i = 1; i <= NR; i++) {
+        if (L[i] == heading) { s = i; continue }
+        if (s && L[i] ~ /^## /) { e = i - 1; break }
+      }
+      if (!s) { for (i = 1; i <= NR; i++) print L[i]; exit }
+      if (!e) e = NR
+
+      # Drop the "(no ... yet" placeholder and its indented continuation lines.
+      for (i = s; i <= e; i++) {
+        if (L[i] ~ /^- \[[ xX]\] \(no /) {
+          drop[i] = 1
+          for (j = i + 1; j <= e; j++) {
+            if (L[j] ~ /^[[:space:]]+[^[:space:]]/) drop[j] = 1; else break
+          }
+        }
+      }
+
+      # Anchor: first MANDATORY item, else after the last surviving list item,
+      # else at the end of the section.
+      at = 0
+      for (i = s; i <= e; i++)
+        if (!drop[i] && L[i] ~ /^- \[[ xX]\] .*MANDATORY/) { at = i; break }
+      if (!at) {
+        last = 0
+        for (i = s; i <= e; i++) if (!drop[i] && L[i] ~ /^- \[[ xX]\] /) last = i
+        if (last) {
+          for (j = last + 1; j <= e; j++) {
+            if (L[j] ~ /^[[:space:]]+[^[:space:]]/) last = j; else break
+          }
+          at = last + 1
+        }
+      }
+      if (!at) { at = e + 1; while (at > s && L[at-1] == "") at-- }
+
+      for (i = 1; i <= NR; i++) {
+        if (i == at) print newline
+        if (!drop[i]) print L[i]
+      }
+      if (at == NR + 1) print newline
+    }
+  ' "$file" > "$tmp" 2>/dev/null || { rm -f "$tmp"; return 0; }
+
+  if [[ -s "$tmp" ]]; then mv "$tmp" "$file"; else rm -f "$tmp"; fi
+}

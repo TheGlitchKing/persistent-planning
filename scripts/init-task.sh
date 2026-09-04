@@ -109,6 +109,13 @@ planning_render_and_log \
   "NOTES_SCOPE_PLACEHOLDER=${PARENT_PHASE}/${TASK_SLUG}" \
   "NOTES_DATE_PLACEHOLDER=${TODAY}"
 
+# Write the task into its phase's list, above the mandatory closers. Before this,
+# init-task.sh never touched phase.md and every list was maintained by hand (#12).
+planning_insert_list_item \
+  "${PHASE_DIR}/phase.md" \
+  "## Tasks" \
+  "- [ ] **${TASK_NAME}** (\`${TASK_SLUG}\`)"
+
 echo ""
 planning_ok "Task '${TASK_NAME}' ready at .planning/${PARENT_PHASE}/${TASK_SLUG}/"
 echo ""
