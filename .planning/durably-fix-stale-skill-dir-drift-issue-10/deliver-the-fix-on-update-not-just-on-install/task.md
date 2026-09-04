@@ -3,7 +3,7 @@ title: Deliver the fix on update not just on install
 tier: plan
 domains:
   - planning
-status: ready
+status: done
 last_updated: "2026-09-04"
 plan_kind: task
 parent: durably-fix-stale-skill-dir-drift-issue-10
@@ -20,16 +20,23 @@ The reclaim migration reaches existing broken installs through a path that actua
 
 ## Atoms
 
-- [ ] Write down the delivery constraint as a test fixture: a marketplace-shaped install has no `node_modules` in the plugin cache and never triggers `runPostinstall`
-- [ ] Add a one-shot reclaim/migration step to `runSessionStart`, run at most once per plugin version (stamp the result in `.claude/persistent-planning.json`)
-- [ ] Gate it on `updatePolicy`: `auto` repairs silently, `nudge` warns and offers `relink`, `off` does nothing
-- [ ] Fail open and stay fast -- the migration must never block or slow session start; skip immediately when the skill dir is already a correct symlink
-- [ ] Bump `@theglitchking/claude-plugin-runtime` and this package's dependency range together; confirm marketplace consumers actually pick up the new runtime from `~/.claude/plugins/npm-cache/`
-- [ ] Update all three version sites per the release checklist: `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (`metadata.version` and the plugin entry)
-- [ ] Verify the published tarball with `npm pack` + inspect before release, per the v3.0.0 `files`-array regression
-- [ ] End-to-end verification from a marketplace-shaped install, not an `npm install`: stale dir in place -> update -> next session -> dir reclaimed, `/start-planning` emits Phase 5/6 and the `## On Completion` block
+- [x] Delivery constraint confirmed: the marketplace plugin cache has no `node_modules` and never triggers `runPostinstall`; the hook resolves the runtime from `~/.claude/plugins/npm-cache/`
+- [x] `autoRepair()` in `hooks/session-start.js` spawns the package's own linker (reclaim + symlink + marker in one), in a child process so a failure cannot take the hook down
+- [x] Once per plugin version — stamped as `repairedSkillsForVersion` in `.claude/persistent-planning.json`; stamped regardless of outcome so a repair that cannot succeed does not retry every session, and a later release gets one fresh attempt
+- [x] Policy-gated: `auto` repairs, `nudge` warns only, `off` does nothing — verified all three, with the filesystem asserted untouched for `nudge` and `off`
+- [x] Fails open and stays fast: two `lstat`s decide the common "nothing to do" case before any work; 10s timeout on the child
+- [x] Repair runs before reporting, so a successful repair does not also warn
+- [x] End-to-end verified with **no `npm install` anywhere in the path**: stale real dir -> session -> symlink created, `.version` stamped 3.1.0, original preserved as `.bak-*`, second session silent
+- [x] Version bumped to 3.2.0 across all three sites: `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` (both `metadata.version` and the plugin entry)
+- [x] `npm pack --dry-run` confirms `scripts/lib/skill-link.js` ships — the `files` array's `scripts/` covers it, avoiding the v3.0.0 regression
+- [x] CHANGELOG entry for 3.2.0
 
 ## Decisions Made
+
+**No runtime bump needed after all** (supersedes the original release-coupling atom):
+because task 1 reclaims *before* delegating, `@theglitchking/claude-plugin-runtime` is
+unchanged and the `^0.1.0` range stays as it is. The fix ships as one release of this
+package through both distribution paths.
 
 **SessionStart is the only universal execution point.** postinstall covers npm consumers
 only, and the broken population is precisely the marketplace consumers. Verified: the
@@ -43,7 +50,7 @@ version keeps it idempotent and lets a later release re-run it.
 consent to filesystem mutation.
 
 ## Status
-**Currently ready** -- the durable upgrade path. Without it tasks 1-3 only help fresh installs.
+**Currently done** -- `hooks/session-start.js` `autoRepair()`, released as 3.2.0.
 
 Status enum: `draft | active | paused | done | archived`
 
