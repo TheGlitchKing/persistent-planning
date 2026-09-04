@@ -3,7 +3,7 @@ title: Troubleshooting Registry
 tier: reference
 domains: [troubleshooting]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Quick reference for troubleshooting documentation
 ---
@@ -16,13 +16,26 @@ purpose: Quick reference for troubleshooting documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 0 |
+| Documents | 1 |
 | Category | advanced |
 | Load Priority | 6/10 |
 
-## Documents
+## Active Documents
 
-*No documents in this domain yet.*
+- [Stale skill directory — commands run frozen code](stale-skill-dir-drift.md)
+
+## Recently Updated
+
+- [Stale skill directory — commands run frozen code](stale-skill-dir-drift.md) - 2026-09-04
+
+## By Status
+
+| Status | Count |
+|--------|-------|
+| active | 1 |
+| draft | 0 |
+| deprecated | 0 |
+| archived | 0 |
 
 ## Keywords
 
@@ -35,4 +48,4 @@ purpose: Quick reference for troubleshooting documentation
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

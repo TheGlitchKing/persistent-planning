@@ -142,3 +142,12 @@ To explicitly migrate a v2 plan to lg, manually:
 - `templates/lg/{phase,task,atom,notes}.md` — frontmatter shapes
 - `scripts/detect-mode.sh` — mode resolution logic
 - `scripts/init-{phase,task,atom}.sh` — init script implementations
+
+
+## How the skill reaches a consumer repo
+
+`.claude/skills/persistent-planning` is a **symlink** into the installed package, created
+by `scripts/link-skills.js`. A real directory there is stale v1 debris and means commands
+are running frozen code — see
+[Skill linking and reclaim](skill-linking-and-reclaim.md) and
+[Stale skill directory](../troubleshooting/stale-skill-dir-drift.md).

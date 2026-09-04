@@ -25,7 +25,7 @@ Every plan this plugin creates ends with the same two units of work, in the same
 order, no exceptions:
 
 1. **Validate success through comprehensive testing**
-2. **Documentation pass — create / update / deprecate docs**
+2. **Documentation pass — create / update / deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it**
 
 They are seeded into the templates so an agent never has to remember them, and
 they are marked `MANDATORY` in the artifact itself so an agent re-reading the

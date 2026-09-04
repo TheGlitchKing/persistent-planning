@@ -3,7 +3,7 @@ title: Documentation Index
 tier: reference
 domains: [root]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Navigation hub for all documentation
 ---
@@ -18,20 +18,20 @@ purpose: Navigation hub for all documentation
 |--------|-----------|-------------|
 | [Agents](#agents) | 0 | Expert agent documentation, specialty matrix |
 | [API](#api) | 0 | API endpoints, routes, specifications, contracts |
-| [Architecture](#architecture) | 2 | System design, AI coach, project registry, patterns |
+| [Architecture](#architecture) | 3 | System design, AI coach, project registry, patterns |
 | [Backups](#backups) | 0 | Backup/restore guides, disaster recovery |
 | [Database](#database) | 0 | Schema, migrations, RLS, queries, procedures |
 | [DevOps](#devops) | 0 | Deployment, CI/CD, Docker, environments, infrastructure |
 | [Features](#features) | 0 | Feature implementation guides, admin docs |
 | [Plans](#plans) | 0 | Planning documents, roadmaps, proposals |
-| [Procedures](#procedures) | 1 | Step-by-step operational procedures (SOP) |
+| [Procedures](#procedures) | 2 | Step-by-step operational procedures (SOP) |
 | [Quickstart](#quickstart) | 1 | Setup guides, dev workflow, onboarding |
 | [Security](#security) | 0 | Security, auth, Vault, Keycloak, RLS |
 | [Standards](#standards) | 2 | Coding standards (backend, frontend, database, devops, security) |
 | [Testing](#testing) | 1 | Test strategies, fixtures, patterns, integration/e2e |
-| [Troubleshooting](#troubleshooting) | 0 | Debug guides, common issues, solutions |
+| [Troubleshooting](#troubleshooting) | 1 | Debug guides, common issues, solutions |
 | [Workflows](#workflows) | 0 | Process documentation, multi-step operations |
-| [Reference](#reference) | 1 | Schema, frontmatter, and CLI reference material for the planning artifacts |
+| [Reference](#reference) | 2 | Schema, frontmatter, and CLI reference material for the planning artifacts |
 
 ---
 
@@ -65,6 +65,7 @@ purpose: Navigation hub for all documentation
 |----------|------|--------|----------|
 | [Manus Context Engineering Principles](architecture/context-engineering-principles.md) | reference | active | 2026-08-31 |
 | [Lg-Mode Layered Planning Guide](architecture/lg-mode.md) | guide | active | 2026-05-07 |
+| [Skill linking and reclaim](architecture/skill-linking-and-reclaim.md) | reference | active | 2026-09-04 |
 
 ---
 
@@ -127,6 +128,7 @@ purpose: Navigation hub for all documentation
 | Document | Tier | Status | Updated |
 |----------|------|--------|----------|
 | [Plan Completion and Archive](procedures/plan-completion-and-archive.md) | guide | active | 2026-08-31 |
+| [Plugin update delivery — what actually runs, and when](procedures/plugin-update-delivery.md) | guide | active | 2026-09-04 |
 
 ---
 
@@ -183,7 +185,9 @@ purpose: Navigation hub for all documentation
 
 **Path:** `troubleshooting/`
 
-*No documents yet.*
+| Document | Tier | Status | Updated |
+|----------|------|--------|----------|
+| [Stale skill directory — commands run frozen code](troubleshooting/stale-skill-dir-drift.md) | guide | active | 2026-09-04 |
 
 ---
 
@@ -205,12 +209,13 @@ purpose: Navigation hub for all documentation
 
 | Document | Tier | Status | Updated |
 |----------|------|--------|----------|
+| [Skill version marker (`.version`)](reference/skill-version-marker.md) | reference | active | 2026-09-04 |
 | [workspace.json schema](reference/workspace-json.md) | standard | active | 2026-05-07 |
 
 ---
 
 ## Maintenance
 
-- **Last generated:** 2026-08-31
+- **Last generated:** 2026-09-04
 - **Run maintenance:** `npx hit-em-with-the-docs maintain`
 - **Regenerate index:** `npx hit-em-with-the-docs index`

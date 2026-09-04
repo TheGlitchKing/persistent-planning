@@ -53,11 +53,15 @@ Layer vocabulary is canonical (**phase / task / atom / notes**) and appears in t
 
 The hook merges its nudge into the runtime's single `SessionStart` JSON response by intercepting the one stdout write — the runtime exposes no append hook, and a second response line would be invalid. It fails open.
 
+**Skill dirs are symlinks, and a real directory is drift.** `scripts/lib/skill-link.js` reclaims one — renaming it to `<name>.bak-<ISO8601>` before the runtime's linker runs — because the runtime skips a non-symlink destination permanently, which let v1's copied skill dirs execute frozen code for months (issue #10). The hook detects the same drift every session and, under `updatePolicy: auto`, repairs it once per plugin version. Nothing is ever deleted. Details in `.documentation/architecture/skill-linking-and-reclaim.md`.
+
 **Docs are hewtd-managed.** They live in `.documentation/<domain>/`, not `docs/`. Create with `npx hewtd integrate <file> -a`, retire with `npx hewtd archive <file>`, regenerate indexes with `npx hewtd maintain --quick`. `INDEX.md`/`REGISTRY.md` are generated — editing them by hand is denied by a guard and overwritten anyway. A custom `reference` domain is registered in `.claude/hit-em-with-the-docs.json`.
 
 ## Release checklist
 
 Version appears in **three** places and they must match: `package.json`, `.claude-plugin/plugin.json`, and `.claude-plugin/marketplace.json` (both the `metadata.version` and the plugin entry).
+
+If a change depends on a new `@theglitchking/claude-plugin-runtime`, the dependency range in `package.json` is a **fourth** coupled site, and shipping it means a runtime publish plus a coordinated rollout — marketplace consumers resolve the runtime from the shared `~/.claude/plugins/npm-cache/`, not a vendored copy. Prefer a change that leaves the runtime alone. Anything that must *repair* an existing install cannot go through `postinstall` at all: a marketplace install never runs it. See `.documentation/procedures/plugin-update-delivery.md`.
 
 The `files` array in `package.json` gates what npm consumers actually get. v3.0.0 shipped broken because `scripts/` and `templates/` were missing from it — new runtime directories must be added there, and the published tarball verified (`npm pack` + inspect) before release.
 

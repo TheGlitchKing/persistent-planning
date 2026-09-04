@@ -3,7 +3,7 @@ title: Troubleshooting Documentation Index
 tier: reference
 domains: [troubleshooting]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Complete listing of troubleshooting documentation
 ---
@@ -14,20 +14,19 @@ purpose: Complete listing of troubleshooting documentation
 
 ## Overview
 
-- **Total Documents:** 0
+- **Total Documents:** 1
 - **Domain:** `troubleshooting/`
 - **Category:** advanced
 - **Load Priority:** 6/10
 
 ## Documents
 
-*No documents in this domain yet.*
+### Guides
 
-To add a document:
+| Document | Status | Updated | Words |
+|----------|--------|---------|-------|
+| [Stale skill directory — commands run frozen code](stale-skill-dir-drift.md) | active | 2026-09-04 | 403 |
 
-1. Create a markdown file in this directory
-2. Add YAML frontmatter with required metadata
-3. Run `npx hit-em-with-the-docs integrate <file>`
 ## Keywords
 
 This domain covers: troubleshooting, troubleshoot, debug, debugging, issue, issues, problem, problems, error, errors
@@ -40,4 +39,4 @@ This domain covers: troubleshooting, troubleshoot, debug, debugging, issue, issu
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

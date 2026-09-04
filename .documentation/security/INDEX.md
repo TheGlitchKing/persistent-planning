@@ -3,7 +3,7 @@ title: Security Documentation Index
 tier: reference
 domains: [security]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Complete listing of security documentation
 ---
@@ -40,4 +40,4 @@ This domain covers: security, auth, authentication, authorization, oauth, jwt, k
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

@@ -3,7 +3,7 @@ title: Testing Registry
 tier: reference
 domains: [testing]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Quick reference for testing documentation
 ---
@@ -48,4 +48,4 @@ purpose: Quick reference for testing documentation
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

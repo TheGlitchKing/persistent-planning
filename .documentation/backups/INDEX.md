@@ -3,7 +3,7 @@ title: Backups Documentation Index
 tier: reference
 domains: [backups]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Complete listing of backups documentation
 ---
@@ -40,4 +40,4 @@ This domain covers: backup, backups, restore, recovery, disaster, disaster-recov
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

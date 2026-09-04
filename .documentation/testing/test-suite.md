@@ -86,3 +86,25 @@ never failed is not known to test anything.
 | Tests pass locally, lg mode broken for installed users | `templates/` or `scripts/` missing from the `files` array in `package.json` | Add them, verify with `npm pack` before publishing |
 
 That last row is not hypothetical — it is exactly how v3.0.0 shipped broken.
+
+
+## The marketplace-shaped fixture
+
+The skill-reclaim tests (issue #10) build a consumer workspace with **no
+`node_modules`**, mirroring a Claude Code marketplace install — the shape that never
+runs npm postinstall, and the shape that was actually broken. Driving the SessionStart
+hook against it proves a repair lands with no `npm install` anywhere in the path.
+
+A test that only passes under `npm install` proves nothing about that population. See
+[Plugin update delivery](../procedures/plugin-update-delivery.md).
+
+## Assert by diff, not by feature-grep
+
+When checking that generated output matches a template, `diff` it. During triage of
+issue #10 a keyword count (`phases: 6 | closers: 2`) reported two known-stale copies as
+healthy; only `diff` exposed the 23-line gap, including an entirely missing
+`## On Completion` block.
+
+Likewise, assertions against the SessionStart payload parse it as JSON rather than
+string-matching. The failure being guarded is an invalid second response line — a
+substring check would pass on malformed output.

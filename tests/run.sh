@@ -438,7 +438,7 @@ GEN="$WS/.planning/drift-guard/task_plan.md"
 assert_file "$GEN" "a plan is generated through the linked skill"
 assert_contains "$GEN" "Phase 5: Validate success through comprehensive testing (MANDATORY)" \
   "generated plan carries the mandatory validate phase"
-assert_contains "$GEN" "Phase 6: Documentation pass" \
+assert_contains "$GEN" "Phase 6: Documentation pass -- create/update/deprecate as many docs" \
   "generated plan carries the mandatory documentation phase"
 assert_contains "$GEN" "## On Completion" \
   "generated plan carries the On Completion archive block"

@@ -161,7 +161,7 @@ Create this file FIRST for any complex task:
 - [ ] Phase 3: Execute/build
 - [ ] Phase 4: Review and deliver
 - [ ] Phase 5: Validate success through comprehensive testing (MANDATORY)
-- [ ] Phase 6: Documentation pass -- create/update/deprecate docs (MANDATORY)
+- [ ] Phase 6: Documentation pass -- create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc.. (MANDATORY)
 
 > Phases 5 and 6 are mandatory and MUST stay the last two phases of this plan.
 > Insert new work above them; never after. Renumber them if you add phases.
@@ -169,7 +169,10 @@ Create this file FIRST for any complex task:
 > - **Validate success**: prove the work with tests that fail if the change breaks.
 > - **Documentation pass**: create/update/deprecate every doc this change touches --
 >   what it is, where it lives, how to fix it, how to operate it, why it matters.
->   If hit-em-with-the-docs is installed, use it for this pass.
+>   If hit-em-with-the-docs is installed, you MUST use it for this pass --
+>   `npx hewtd integrate <file> -a` to create, `npx hewtd archive <file>` to retire,
+>   `npx hewtd maintain --quick` to regenerate indexes. Never hand-edit INDEX.md or
+>   REGISTRY.md; they are generated.
 
 ## Key Questions
 1. [Question to answer]
