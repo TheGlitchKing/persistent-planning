@@ -68,6 +68,13 @@ its own.
   failure is contained.
 - **Fails open.** Every path is wrapped. A broken migration must never cost someone
   their session start.
+- **Never let a dependency be fatal.** Load the runtime with `await import()` in a
+  try/catch. A static import makes an unresolvable dependency fatal for the whole hook,
+  including the repair — the delivery path must survive what it is delivering a fix for
+  (#18). Only the update check genuinely needs the runtime.
+- **Stamp on success, never on failure.** Marking a version done after a failed attempt
+  turns a transient problem into a permanent one: the repair never runs again, even once
+  the cause is gone. Retrying costs one spawn per session while genuinely drifted.
 - **One stdout write.** The runtime owns the single `SessionStart` JSON response and
   exposes no append hook; a second response line is invalid. Merge into the existing
   intercept.
