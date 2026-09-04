@@ -3,7 +3,7 @@ title: Make lg task lists self-maintaining and closers enforceable (issue #12)
 tier: plan
 domains:
   - planning
-status: active
+status: done
 last_updated: "2026-09-04"
 plan_kind: phase
 parent: null
@@ -22,12 +22,12 @@ Each task is a bounded deliverable. Tasks default to dependencies-first scheduli
 Tasks with no inter-dependencies can be marked `parallelizable: true` in their frontmatter
 so subagent teams can pick them up concurrently.]
 
-- [ ] **Init scripts maintain their parent list** (`init-scripts-maintain-their-parent-list`) — the root fix
-- [ ] **Placeholders stop counting as work** (`placeholders-stop-counting-as-work`) — parallelizable
-- [ ] **Scaffold the two closer task dirs** (`scaffold-the-two-closer-task-dirs`) — depends on the insertion logic
-- [ ] **Enforce mandatory closers in plan-status** (`enforce-mandatory-closers-in-plan-status`) — depends on scaffolding
-- [ ] **Validate success through comprehensive testing** (`validate-success-through-comprehensive-testing`) (MANDATORY — second-to-last)
-- [ ] **Documentation pass — create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc..** (`documentation-pass-create-update-deprecate-docs`) (MANDATORY — last)
+- [x] **Init scripts maintain their parent list** (`init-scripts-maintain-their-parent-list`) — the root fix
+- [x] **Placeholders stop counting as work** (`placeholders-stop-counting-as-work`) — parallelizable
+- [x] **Scaffold the two closer task dirs** (`scaffold-the-two-closer-task-dirs`) — depends on the insertion logic
+- [x] **Enforce mandatory closers in plan-status** (`enforce-mandatory-closers-in-plan-status`) — depends on scaffolding
+- [x] **Validate success through comprehensive testing** (`validate-success-through-comprehensive-testing`) (MANDATORY — second-to-last)
+- [x] **Documentation pass — create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc..** (`documentation-pass-create-update-deprecate-docs`) (MANDATORY — last)
 
 > The two mandatory closing tasks above MUST remain the last two tasks of this phase.
 > Add new tasks above them; never after. A phase cannot be marked `done` until both are
@@ -77,7 +77,7 @@ where phases-as-checkboxes *is* the whole artifact, and `CLAUDE.md` requires v2 
 preserved bit-for-bit. Nothing here touches it.
 
 ## Status
-**Currently active** — 4 implementation tasks plus the two mandatory closers.
+**Currently done** — all 4 implementation tasks plus both mandatory closers are `status: done`. 99 assertions green, 16/16 docs, released as 3.3.0.
 
 Investigated on `fix/lg-mandatory-closer-tasks`, branched from the merged #10 work
 (`d3b3200`). Findings and the correction to the original diagnosis are on
