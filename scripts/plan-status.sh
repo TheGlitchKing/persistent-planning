@@ -45,20 +45,71 @@ plan_root_artifact() {
   done
 }
 
+# frontmatter_field <file> <key> -> value of `<key>:` inside the leading --- block
+#
+# Scoped to the frontmatter on purpose. Grepping a whole file for a frontmatter field
+# matches it in prose, tables and fenced examples too — a notes.md documenting the
+# contract then reads as an artifact that declares it (issue #14).
+frontmatter_field() {
+  [[ -f "$1" ]] || return
+  awk -v key="$2" '
+    NR==1 && $0 != "---" { exit }
+    NR>1 && $0 == "---" { exit }
+    index($0, key ":") == 1 {
+      sub("^" key ":[[:space:]]*", "")
+      gsub(/["\047]/, "")
+      sub(/[[:space:]]+$/, "")
+      print; exit
+    }' "$1"
+}
+
 # frontmatter_status <file> -> value of `status:` inside the leading --- block
 frontmatter_status() {
-  [[ -f "$1" ]] || return
-  awk 'NR==1 && $0 != "---" { exit }
-       NR>1 && $0 == "---" { exit }
-       /^status:[[:space:]]*/ { sub(/^status:[[:space:]]*/, ""); gsub(/["\047]/, ""); print; exit }' "$1"
+  frontmatter_field "$1" "status"
 }
 
 # Emits "<total> <checked>" for every markdown file under a plan directory.
+#
+# Checkboxes inside fenced code blocks are examples, not work. A plan whose notes.md
+# quotes markdown — which is what notes.md is for — used to have those quoted boxes
+# counted against it, and a quoted `- [ ]` inflates only the denominator, so the plan
+# became permanently uncompletable with no visible reason (issue #14).
+#
+# An unterminated fence swallows the rest of the file. That is the safe direction:
+# ambiguous content is not counted as outstanding work.
 count_boxes() {
-  local total checked
-  total=$(grep -rhoE '^[[:space:]]*- \[[ xX]\] ' --include='*.md' "$1" 2>/dev/null | wc -l | tr -d ' ')
-  checked=$(grep -rhoE '^[[:space:]]*- \[[xX]\] ' --include='*.md' "$1" 2>/dev/null | wc -l | tr -d ' ')
+  local total=0 checked=0 f out
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    out=$(awk '
+      # Fence open/close: ``` or ~~~, optionally indented, optional info string.
+      # A fence closes only on the same character.
+      /^[[:space:]]*(```|~~~)/ {
+        line = $0
+        sub(/^[[:space:]]*/, "", line)
+        ch = substr(line, 1, 1)
+        if (!infence) { infence = 1; fencechar = ch }
+        else if (ch == fencechar) { infence = 0 }
+        next
+      }
+      infence { next }
+      /^[[:space:]]*- \[[ xX]\] / { t++ }
+      /^[[:space:]]*- \[[xX]\] /  { c++ }
+      END { print t + 0, c + 0 }
+    ' "$f" 2>/dev/null) || continue
+    total=$((total + ${out%% *}))
+    checked=$((checked + ${out##* }))
+  done < <(find "$1" -type f -name '*.md' 2>/dev/null)
   echo "$total $checked"
+}
+
+# Files under a plan whose FRONTMATTER declares <key>: <value>.
+frontmatter_files_with() {
+  local dir="$1" key="$2" want="$3" f
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    [[ "$(frontmatter_field "$f" "$key")" == "$want" ]] && echo "$f"
+  done < <(find "$dir" -type f -name '*.md' 2>/dev/null)
 }
 
 # Counts mandatory tasks under a plan that are not yet done.
@@ -75,7 +126,7 @@ unfinished_mandatory() {
     [[ -n "$f" ]] || continue
     st=$(frontmatter_status "$f")
     [[ "$st" == "done" || "$st" == "archived" ]] || n=$((n + 1))
-  done < <(grep -rl '^mandatory:[[:space:]]*true' --include='*.md' "$1" 2>/dev/null)
+  done < <(frontmatter_files_with "$1" "mandatory" "true")
   echo "$n"
 }
 
@@ -92,7 +143,7 @@ for plan_path in "$PLANNING"/*/; do
 
   read -r total checked <<<"$(count_boxes "${plan_path%/}")"
   status=$(frontmatter_status "$root")
-  blocked=$(grep -rl '^status: blocked' --include='*.md' "${plan_path%/}" 2>/dev/null | wc -l | tr -d ' ')
+  blocked=$(frontmatter_files_with "${plan_path%/}" "status" "blocked" | wc -l | tr -d ' ')
   pending_mandatory=$(unfinished_mandatory "${plan_path%/}")
 
   if [[ "$status" == "archived" ]]; then

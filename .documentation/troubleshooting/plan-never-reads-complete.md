@@ -65,6 +65,17 @@ plan cannot finish until someone ticks a line that says nothing exists.
 scripts remove it automatically on first insert. New plans ship the placeholders as
 italic text, which is not counted.
 
+## 2b. Quoted markdown used to count (fixed in 3.3.1)
+
+Before 3.3.1, three readers scanned whole files: the checkbox counter, the mandatory
+gate, and blocked detection. A `notes.md` that merely *documented* the contract tripped
+all three — a fenced `- [ ]` example inflated the denominator, a fenced `mandatory: true`
+held the plan open with the box count reading a perfect `n/n`, and a fenced
+`status: blocked` produced a false `blocked` verdict.
+
+Frontmatter fields are now read from frontmatter only, and checkbox counting skips fenced
+code blocks. If you are on an older version, move the example out of the plan or upgrade.
+
 ## 3. Something under the plan is `status: blocked`
 
 ```

@@ -630,6 +630,150 @@ case "$STATUS_OUT" in
 esac
 rm -rf "$WS"
 
+
+###############################################################################
+echo
+echo "plan-status ignores quoted markdown (issue #14)"
+###############################################################################
+# Three readers used to scan whole files: the checkbox counter, the mandatory gate,
+# and blocked detection. A notes.md that merely *documents* the contract tripped all
+# three. Frontmatter fields are now read from frontmatter; checkboxes skip fences.
+
+FENCE='```'
+TILDE='~~~'
+
+plan_row() { # <workspace> <slug>
+  CLAUDE_PROJECT_DIR="$1" bash "$REPO_DIR/scripts/plan-status.sh" 2>/dev/null | grep -- "$2"
+}
+
+mk_plan() { # <workspace> -> a plan with one ticked task
+  mkdir -p "$1/.planning/demo"
+  printf -- '---\ntitle: D\nplan_kind: phase\nstatus: active\n---\n\n## Tasks\n- [x] The only real work\n' \
+    > "$1/.planning/demo/phase.md"
+}
+
+# --- quoted checkboxes are examples, not work --------------------------------
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\nWhat a broken phase looks like:\n\n'
+  printf '%smarkdown\n' "$FENCE"
+  printf -- '- [ ] (no tasks yet)\n- [ ] **Validate success** (MANDATORY)\n'
+  printf '%s\n' "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*1/1*) pass "checkboxes inside a fence are not counted" ;;
+  *) fail "checkboxes inside a fence are not counted"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- tilde fences, and a fence with no language tag --------------------------
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\n'
+  printf '%s\n- [ ] tilde-fenced\n%s\n\n' "$TILDE" "$TILDE"
+  printf '%s\n- [ ] untagged\n%s\n' "$FENCE" "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*1/1*) pass "tilde fences and untagged fences are both honoured" ;;
+  *) fail "tilde fences and untagged fences are both honoured"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- an indented fence inside a list item ------------------------------------
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\n- an example:\n\n'
+  printf '  %s\n  - [ ] indented example\n  %s\n' "$FENCE" "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*1/1*) pass "an indented fence is honoured" ;;
+  *) fail "an indented fence is honoured"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- a tilde fence does not close a backtick fence ---------------------------
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\n'
+  printf '%smarkdown\n' "$FENCE"
+  printf '%s\n- [ ] still inside the outer fence\n' "$TILDE"
+  printf '%s\n' "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*1/1*) pass "a fence closes only on its own character" ;;
+  *) fail "a fence closes only on its own character"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- an unclosed fence swallows the rest of the file (documented behavior) ----
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\n'
+  printf '%s\n- [ ] never closed\n- [ ] also never closed\n' "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*1/1*) pass "an unclosed fence swallows the rest of the file" ;;
+  *) fail "an unclosed fence swallows the rest of the file"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- adjacent fences: content between them still counts ----------------------
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\n'
+  printf '%s\n- [ ] quoted\n%s\n\n' "$FENCE" "$FENCE"
+  printf -- '- [ ] REAL work between fences\n\n'
+  printf '%s\n- [ ] quoted again\n%s\n' "$FENCE" "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *"1/2"*) pass "real checkboxes between two fences still count" ;;
+  *) fail "real checkboxes between two fences still count"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- frontmatter fields are read from frontmatter, not from anywhere ---------
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\nThe closer contract:\n\n'
+  printf '%syaml\nmandatory: true\n%s\n' "$FENCE" "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*) pass "a quoted mandatory: true does not gate completion" ;;
+  *) fail "a quoted mandatory: true does not gate completion"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+WS=$(new_workspace)
+mkdir -p "$WS/.planning/demo"
+printf -- '---\ntitle: D\nplan_kind: phase\nstatus: active\n---\n\n## Tasks\n- [x] Done\n- [ ] Going\n' \
+  > "$WS/.planning/demo/phase.md"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\nA blocked atom looks like:\n\n'
+  printf '%syaml\nstatus: blocked\n%s\n' "$FENCE" "$FENCE"
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *blocked*) fail "a quoted status: blocked does not mark the plan blocked"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+  *) pass "a quoted status: blocked does not mark the plan blocked" ;;
+esac
+rm -rf "$WS"
+
+# --- prose and tables must not trigger it either (fence-stripping alone would) -
+WS=$(new_workspace); mk_plan "$WS"
+{ printf -- '---\ntitle: N\nstatus: active\n---\n\n'
+  printf -- '| Field | Value |\n|---|---|\n| mandatory: true | sets the gate |\n\n'
+  printf -- 'A closer declares mandatory: true in its frontmatter.\n'
+} > "$WS/.planning/demo/notes.md"
+case "$(plan_row "$WS" demo)" in
+  *COMPLETE*) pass "mandatory: in prose or a table does not gate completion" ;;
+  *) fail "mandatory: in prose or a table does not gate completion"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
+# --- the real signals must still fire ----------------------------------------
+WS=$(new_workspace)
+mkdir -p "$WS/.planning/demo"
+printf -- '---\ntitle: D\nplan_kind: phase\nstatus: active\n---\n\n## Tasks\n- [x] Done\n- [ ] Going\n' \
+  > "$WS/.planning/demo/phase.md"
+printf -- '---\ntitle: T\nstatus: blocked\nmandatory: true\n---\n\n## Atoms\n- [x] a\n' \
+  > "$WS/.planning/demo/real.md"
+case "$(plan_row "$WS" demo)" in
+  *blocked*2/3*) pass "genuine blocked frontmatter still reports blocked" ;;
+  *) fail "genuine blocked frontmatter still reports blocked"; printf '       got: %s\n' "$(plan_row "$WS" demo)" ;;
+esac
+rm -rf "$WS"
+
 ###############################################################################
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]
