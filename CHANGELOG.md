@@ -45,7 +45,7 @@ copying, as first reported; it was refusing to reclaim what v1 left behind.)
   run at all in a marketplace-only install, the shape that needs it most — and no longer
   swallows the linker's exit code.
 
-Test suite grows to 63 assertions, including a marketplace-shaped fixture with no
+Test suite grows to 74 assertions, including a marketplace-shaped fixture with no
 `node_modules`. New docs: `.documentation/troubleshooting/stale-skill-dir-drift.md`,
 `.documentation/architecture/skill-linking-and-reclaim.md`,
 `.documentation/reference/skill-version-marker.md`,
