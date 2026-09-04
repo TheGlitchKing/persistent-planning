@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.4.0] - 2026-09-04
+
+### Changed — only completed plans are gitignored (#15)
+
+Both init scripts blanket-ignored the entire `.planning/` tree, a v1.0.0 behavior
+(`fb35f19`) that 3.1.0 implicitly reversed and never removed. `archive-plan.sh` had
+already decided only completed plans are local history, and four shipped docs —
+`SKILL.md`, `lg-mode.md` (twice), `README.md` — described `.planning/.archive/` as *the*
+gitignored path. The code did the opposite.
+
+In lg mode the contradiction was sharpest: that mode is selected because ≥2 git authors
+exist, plans are what subagents read via the planning MCP, and the first thing
+`init-phase.sh` did was guarantee no teammate would ever receive them. The blanket entry
+also suppressed `archive-plan.sh`'s narrow one — its first guard returns early when the
+whole tree is ignored — so the narrow entry could never appear in a repo where
+`/start-planning` had run, which is every repo.
+
+- **Active plans are tracked; only `.planning/.archive/` is ignored.** One rule, shared by
+  both lg init and `archive-plan.sh` via `planning_ensure_archive_gitignored`;
+  `init-planning.sh` keeps its own copy since it is deliberately self-contained.
+- **An existing blanket `.planning/` line is never rewritten.** It is the user's file. The
+  tool says once how to narrow it and moves on — otherwise the plans someone is about to
+  create are invisible to their team and nothing tells them.
+- **Init still never creates a `.gitignore`** where none exists. `archive-plan.sh` does,
+  because it has just moved files into `.archive/` and that path must be ignored for the
+  move to mean anything.
+
+sm plan output remains byte-identical. Test suite grows to 119 assertions.
+
 ## [3.3.1] - 2026-09-04
 
 ### Fixed — a plan that documented markdown could not complete (#14)

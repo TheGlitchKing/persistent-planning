@@ -51,13 +51,10 @@ ARCHIVE="${PLANNING}/.archive"
 TODAY=$(planning_today)
 
 # .planning/.archive/ must be gitignored: completed plans are local history, not
-# something every clone should carry. Idempotent.
+# something every clone should carry. Shared with the init scripts so there is one
+# rule, not two — it also warns when a blanket .planning/ entry is hiding everything.
 ensure_gitignored() {
-  local gitignore="${ROOT}/.gitignore"
-  grep -qE '^\.planning/?$' "$gitignore" 2>/dev/null && return 0   # whole tree already ignored
-  grep -qE '^\.planning/\.archive/?$' "$gitignore" 2>/dev/null && return 0
-  printf '\n# Completed plans retired by scripts/archive-plan.sh (local history)\n.planning/.archive/\n' >> "$gitignore"
-  planning_ok "Added .planning/.archive/ to .gitignore"
+  planning_ensure_archive_gitignored "${ROOT}" 1
 }
 
 plan_root_artifact() {

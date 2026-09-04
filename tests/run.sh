@@ -774,6 +774,83 @@ case "$(plan_row "$WS" demo)" in
 esac
 rm -rf "$WS"
 
+
+###############################################################################
+echo
+echo ".gitignore scope (issue #15)"
+###############################################################################
+# v1.0.0 blanket-ignored .planning/; 3.1.0 decided only completed plans are local
+# history but never displaced the old rule. Active plans are what a teammate or a
+# subagent reads — in lg mode, chosen precisely because there IS a team.
+
+gi_workspace() { # -> temp repo with an empty .gitignore
+  local d; d=$(new_workspace)
+  ( cd "$d" && git init -q . ) 2>/dev/null
+  touch "$d/.gitignore"
+  echo "$d"
+}
+
+# --- lg: a fresh repo gets the narrow entry only ------------------------------
+WS=$(gi_workspace)
+mkdir -p "$WS/.planning/.meta"
+echo '{"schema_version":"1.0","mode":"lg"}' > "$WS/.planning/.meta/workspace.json"
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "P" >/dev/null 2>&1
+assert_contains "$WS/.gitignore" ".planning/.archive/" "lg init ignores only .planning/.archive/"
+if ! grep -qE '^\.planning/?$' "$WS/.gitignore"; then
+  pass "lg init does not blanket-ignore .planning/"
+else
+  fail "lg init does not blanket-ignore .planning/"
+fi
+# Idempotent across repeated phases.
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "Q" >/dev/null 2>&1
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "R" >/dev/null 2>&1
+assert_eq "1" "$(grep -c '^\.planning/\.archive/$' "$WS/.gitignore")" \
+  "repeated inits add the entry exactly once"
+rm -rf "$WS"
+
+# --- sm: same rule, from its own self-contained copy --------------------------
+WS=$(gi_workspace)
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-planning.sh" "T" >/dev/null 2>&1
+assert_contains "$WS/.gitignore" ".planning/.archive/" "sm init ignores only .planning/.archive/"
+if ! grep -qE '^\.planning/?$' "$WS/.gitignore"; then
+  pass "sm init does not blanket-ignore .planning/"
+else
+  fail "sm init does not blanket-ignore .planning/"
+fi
+rm -rf "$WS"
+
+# --- an existing blanket entry is warned about, never rewritten ---------------
+WS=$(gi_workspace)
+printf 'node_modules/\n.planning/\n' > "$WS/.gitignore"
+mkdir -p "$WS/.planning/.meta"
+echo '{"schema_version":"1.0","mode":"lg"}' > "$WS/.planning/.meta/workspace.json"
+OUT=$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "P" 2>&1)
+case "$OUT" in
+  *"ignores all of .planning/"*) pass "a blanket .planning/ entry is warned about" ;;
+  *) fail "a blanket .planning/ entry is warned about" ;;
+esac
+assert_eq "node_modules/ .planning/" "$(tr '\n' ' ' < "$WS/.gitignore" | sed 's/ $//')" \
+  "the user's .gitignore is never rewritten"
+rm -rf "$WS"
+
+# --- init must not create a .gitignore where none exists ----------------------
+WS=$(new_workspace)
+mkdir -p "$WS/.planning/.meta"
+echo '{"schema_version":"1.0","mode":"lg"}' > "$WS/.planning/.meta/workspace.json"
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "P" >/dev/null 2>&1
+if [[ ! -f "$WS/.gitignore" ]]; then
+  pass "init does not create a .gitignore where none exists"
+else
+  fail "init does not create a .gitignore where none exists"
+fi
+# ...but archive-plan does, because it has just moved files into .archive/.
+find "$WS/.planning/p" -name '*.md' -exec sed -i 's/- \[ \]/- [x]/g' {} +
+find "$WS/.planning/p" -name 'task.md' -exec sed -i 's/^status: draft$/status: done/' {} +
+CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" p >/dev/null 2>&1
+assert_file "$WS/.gitignore" "archive-plan creates .gitignore when it needs the entry"
+assert_contains "$WS/.gitignore" ".planning/.archive/" "archive-plan writes the narrow entry"
+rm -rf "$WS"
+
 ###############################################################################
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]

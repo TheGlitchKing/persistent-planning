@@ -83,6 +83,20 @@ a fresh phase with two tasks reported `0/5 boxes` and a plan could reach 100% by
 ticking lines asserting that nothing existed. See
 [Plan never reads complete](../troubleshooting/plan-never-reads-complete.md).
 
+## What is version-controlled
+
+Active plans are **tracked**. They are the artifact a team coordinates around and that
+subagents read via the planning MCP — and lg mode is selected precisely because there is
+a team (≥2 git authors in 90 days). Ignoring them would defeat the mode's purpose.
+
+Only `.planning/.archive/` is ignored: a completed plan is local history. Both init
+scripts and `archive-plan.sh` write that one entry through
+`planning_ensure_archive_gitignored` (sm keeps its own self-contained copy).
+
+A repo that already carries a blanket `.planning/` line from v1 keeps it — the tool warns
+once and never rewrites a user's `.gitignore`. To start sharing plans, replace that line
+with `.planning/.archive/`.
+
 ## sm mode is different, on purpose
 
 `scripts/init-planning.sh` writes a single flat `task_plan.md` where phases-as-checkboxes

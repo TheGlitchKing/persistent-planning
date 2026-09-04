@@ -239,3 +239,45 @@ planning_insert_list_item() {
 
   if [[ -s "$tmp" ]]; then mv "$tmp" "$file"; else rm -f "$tmp"; fi
 }
+
+###############################################################################
+# .gitignore scope
+#
+# Only completed plans are local history. Active plans are the artifact a team
+# coordinates around and that subagents read via the planning MCP — in lg mode,
+# selected precisely because there IS a team, ignoring them defeats the point.
+#
+# v1.0.0 blanket-ignored .planning/; 3.1.0's archive-plan.sh introduced the narrow
+# entry with the reasoning above but never displaced the old rule, leaving four
+# shipped docs describing a behavior the code did not have (issue #15).
+###############################################################################
+
+# planning_ensure_archive_gitignored <repo-root> [create-if-missing]
+#
+# Adds `.planning/.archive/` when absent. Never rewrites an existing blanket
+# `.planning/` entry — that is the user's file and their call — but says once how to
+# narrow it, because otherwise the plans they are about to create are invisible to
+# everyone else and nothing tells them.
+#
+# The init scripts pass no second argument: creating a .gitignore in a repo that has
+# none is not their business. archive-plan.sh passes 1 — it has just moved files into
+# .archive/ and that path has to be ignored for the move to mean anything.
+planning_ensure_archive_gitignored() {
+  local gitignore="${1}/.gitignore" create="${2:-}"
+  if [[ ! -f "$gitignore" ]]; then
+    [[ "$create" == "1" ]] || return 0
+    touch "$gitignore" 2>/dev/null || return 0
+  fi
+
+  if grep -qE '^\.planning/?$' "$gitignore" 2>/dev/null; then
+    planning_warn ".gitignore ignores all of .planning/ — plans will not be shared."
+    echo "           Active plans are what teammates and subagents read. To share them," >&2
+    echo "           replace the '.planning/' line with '.planning/.archive/'." >&2
+    return 0
+  fi
+
+  grep -qE '^\.planning/\.archive/?$' "$gitignore" 2>/dev/null && return 0
+
+  printf '\n# Completed plans retired by scripts/archive-plan.sh (local history)\n.planning/.archive/\n' >> "$gitignore"
+  planning_ok "Added .planning/.archive/ to .gitignore (active plans stay shareable)"
+}
