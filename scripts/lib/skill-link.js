@@ -14,7 +14,7 @@
 // Nothing here ever deletes. A reclaimed directory is renamed to
 // <name>.bak-<ISO8601>, and a failure to rename falls through to the old skip.
 
-import { existsSync, lstatSync, readdirSync, readlinkSync, renameSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync, renameSync, writeFileSync } from "node:fs";
 import { join, relative, resolve, dirname } from "node:path";
 
 export const ENV_PREFIX = "PERSISTENT_PLANNING";
@@ -129,4 +129,49 @@ export function reclaimStaleSkillDirs(consumerRoot, packageRoot, opts = {}) {
 export function driftedSkills(consumerRoot, packageRoot, skillsSubdir = "skills") {
   return surveySkills(consumerRoot, packageRoot, skillsSubdir)
     .filter((s) => s.state === "real-dir" || s.state === "symlink-foreign");
+}
+
+// ── Version marker ──────────────────────────────────────────────────────────
+//
+// The drift that started issue #10 was invisible because the update check read the
+// plugin's version while /start-planning executed the skill dir's copy — same number,
+// different artifact. The primary signal is structural (describeSkill: a real dir is
+// always suspect, because nothing in the current system creates one). This marker is
+// the secondary signal: it says how far behind a drifted copy actually is, and it is
+// the only signal available on install shapes where a symlink is impossible.
+
+export const MARKER = ".version";
+
+/** Version of the skill copy that would actually execute, or null. */
+export function readSkillVersion(consumerRoot, name) {
+  try {
+    const raw = readFileSync(join(consumerRoot, ".claude", "skills", name, MARKER), "utf8");
+    return raw.trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Stamp linked skills with the version they came from.
+ *
+ * Only ever stamps a healthy symlink — never a real directory. Stamping a real dir
+ * would mark stale code as current and defeat the whole check. Best-effort: a
+ * read-only package dir (npm cache, plugin cache) just leaves the marker absent,
+ * which the drift check treats as "unknown", not "fine".
+ */
+export function writeVersionMarkers(consumerRoot, packageRoot, version, opts = {}) {
+  const { skillsSubdir = "skills" } = opts;
+  if (!version) return { stamped: [], skipped: [] };
+  const out = { stamped: [], skipped: [] };
+  for (const info of surveySkills(consumerRoot, packageRoot, skillsSubdir)) {
+    if (info.state !== "symlink-ok") { out.skipped.push(info.name); continue; }
+    try {
+      writeFileSync(join(info.dest, MARKER), `${version}\n`, "utf8");
+      out.stamped.push(info.name);
+    } catch {
+      out.skipped.push(info.name);
+    }
+  }
+  return out;
 }

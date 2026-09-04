@@ -8,3 +8,6 @@ dist/
 !.documentation/reports/INDEX.md
 # Completed plans retired by scripts/archive-plan.sh (local history)
 .planning/.archive/
+
+# Version marker written into linked skill dirs at install time
+skills/*/.version

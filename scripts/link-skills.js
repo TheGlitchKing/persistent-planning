@@ -10,7 +10,8 @@
 import { runPostinstall } from "@theglitchking/claude-plugin-runtime";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { reclaimStaleSkillDirs, ENV_PREFIX } from "./lib/skill-link.js";
+import { reclaimStaleSkillDirs, writeVersionMarkers, ENV_PREFIX } from "./lib/skill-link.js";
+import { createRequire } from "node:module";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const consumerRoot = process.env.INIT_CWD || process.cwd();
@@ -47,4 +48,14 @@ try {
   });
 } catch (err) {
   console.warn(`[persistent-planning] postinstall failed: ${err?.message || err}`);
+}
+
+try {
+  // Stamp the artifact that actually executes, so drift is detectable at all.
+  // Only healthy symlinks are stamped — never a real dir, which would mark stale
+  // code as current.
+  const { version } = createRequire(import.meta.url)("../package.json");
+  writeVersionMarkers(consumerRoot, packageRoot, version, { skillsSubdir: "skills" });
+} catch {
+  // Marker is a diagnostic aid, not a dependency. Absent is a valid state.
 }
