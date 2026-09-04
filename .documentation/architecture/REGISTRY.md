@@ -16,7 +16,7 @@ purpose: Quick reference for architecture documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 3 |
+| Documents | 4 |
 | Category | development |
 | Load Priority | 7/10 |
 
@@ -24,10 +24,12 @@ purpose: Quick reference for architecture documentation
 
 - [Manus Context Engineering Principles](context-engineering-principles.md)
 - [Lg-Mode Layered Planning Guide](lg-mode.md)
+- [lg plan artifact lifecycle — who writes what](lg-plan-artifact-lifecycle.md)
 - [Skill linking and reclaim](skill-linking-and-reclaim.md)
 
 ## Recently Updated
 
+- [lg plan artifact lifecycle — who writes what](lg-plan-artifact-lifecycle.md) - 2026-09-04
 - [Skill linking and reclaim](skill-linking-and-reclaim.md) - 2026-09-04
 - [Manus Context Engineering Principles](context-engineering-principles.md) - 2026-08-31
 - [Lg-Mode Layered Planning Guide](lg-mode.md) - 2026-05-07
@@ -36,7 +38,7 @@ purpose: Quick reference for architecture documentation
 
 | Status | Count |
 |--------|-------|
-| active | 3 |
+| active | 4 |
 | draft | 0 |
 | deprecated | 0 |
 | archived | 0 |

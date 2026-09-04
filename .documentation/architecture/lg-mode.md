@@ -151,3 +151,10 @@ by `scripts/link-skills.js`. A real directory there is stale v1 debris and means
 are running frozen code — see
 [Skill linking and reclaim](skill-linking-and-reclaim.md) and
 [Stale skill directory](../troubleshooting/stale-skill-dir-drift.md).
+
+
+## Who writes which artifact
+
+Creating a task writes it into its phase's list; creating an atom writes it into its
+task's list. Full ownership table and the insertion rule:
+[lg plan artifact lifecycle](lg-plan-artifact-lifecycle.md).

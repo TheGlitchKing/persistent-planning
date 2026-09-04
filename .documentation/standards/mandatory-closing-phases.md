@@ -123,3 +123,23 @@ npm test
 | Closing phases are no longer last | Work appended below them | Move the new phases above the pair and renumber |
 | `npm test` fails on "documentation phase is last" | A template edit added a checkbox after the pair, or reworded the pair | Restore the ordering in `scripts/init-planning.sh` / `templates/lg/phase.md` |
 | Phase marked `done` with closing tasks unchecked | Skipped the gate | Not done — finish both, then mark the phase |
+
+
+## How they are enforced (3.3.0+)
+
+In lg mode the two closers are no longer only checkbox lines. `init-phase.sh` scaffolds
+each as a real task directory — `task.md` with `mandatory: true`, `notes.md`, `atoms/`,
+and seeded atoms — so they are addressable artifacts like every other task.
+
+Two mechanisms keep the rule true rather than advisory:
+
+- **Ordering by construction.** `init-task.sh` inserts every new task *above* the first
+  MANDATORY entry, so the closers cannot be pushed out of last place by adding work.
+- **Completion gated on status.** `plan-status.sh` refuses `COMPLETE` while any
+  `mandatory: true` task's own `status:` is not `done`. Ticking its checkbox is not
+  enough — a closer that was ticked but never performed is exactly the failure being
+  guarded.
+
+Legacy plans without `mandatory:` frontmatter keep their previous behavior; the gate is
+strictly additive. See [`mandatory:` frontmatter](../reference/mandatory-frontmatter.md)
+and [lg plan artifact lifecycle](../architecture/lg-plan-artifact-lifecycle.md).

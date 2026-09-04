@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] - 2026-09-04
+
+### Fixed — lg task lists were maintained by hand, and the mandatory closers were unenforceable (#12)
+
+`init-task.sh` never wrote to `phase.md` — it referenced the file only in an existence
+check — and `init-atom.sh` never wrote the atom into its task. So **every lg task list was
+maintained by hand**: create six task directories and the phase still reported
+`(no tasks yet)`. The "closers must stay last" rule therefore governed a list no tool
+produced, and the test that claimed to cover it only ever inspected a freshly rendered
+template, which can never be wrong.
+
+- **Creating a child writes it into its parent's list.** `planning_insert_list_item` in
+  `scripts/lib/planning.sh` inserts above the first `MANDATORY` entry — so the closers stay
+  last *by construction* — appends after the last item in sections with no MANDATORY
+  entries, drops the placeholder on first use, is idempotent under `PLANNING_FORCE=1`, and
+  is section-scoped. It anchors on the MANDATORY marker, never on line numbers, because the
+  list is a human-editable surface.
+- **The closers are real task directories now.** `init-phase.sh` scaffolds
+  `validate-success-through-comprehensive-testing/` and
+  `documentation-pass-create-update-deprecate-docs/` with `task.md` (`mandatory: true`,
+  `parallelizable: false`), `notes.md`, `atoms/`, and seeded atoms. Previously the two most
+  important tasks in every plan were the only ones with no artifact a subagent could read.
+- **Placeholders stopped counting as work.** `(no tasks yet …)` and `(no atoms yet …)`
+  shipped as real checkboxes, and `plan-status.sh` counts every box under a plan — a fresh
+  phase with two tasks reported `0/5`, a plan could reach 100% by ticking lines asserting
+  nothing existed, and a finished phase stayed open until someone ticked "no tasks yet".
+  They are italic text now; `plan-status.sh` needed no change.
+- **The completion gate is real.** `plan-status.sh` refuses `COMPLETE` while any
+  `mandatory: true` task's own `status:` is not `done`. Ticking its checkbox is not enough.
+  `archive-plan.sh` inherits this through its existing pre-flight rather than duplicating
+  the rule. Strictly additive: plans with no `mandatory:` frontmatter behave exactly as
+  before.
+
+Test suite grows to 99 assertions, every new one mutating the plan before asserting.
+sm mode verified byte-identical against the pre-change render. New docs:
+`.documentation/architecture/lg-plan-artifact-lifecycle.md`,
+`.documentation/reference/mandatory-frontmatter.md`,
+`.documentation/troubleshooting/plan-never-reads-complete.md`.
+
 ## [3.2.0] - 2026-09-04
 
 ### Fixed — Stale skill directories run frozen code (#10)

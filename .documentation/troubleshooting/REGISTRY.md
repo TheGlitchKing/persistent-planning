@@ -16,23 +16,25 @@ purpose: Quick reference for troubleshooting documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 1 |
+| Documents | 2 |
 | Category | advanced |
 | Load Priority | 6/10 |
 
 ## Active Documents
 
+- [A plan won't read COMPLETE](plan-never-reads-complete.md)
 - [Stale skill directory — commands run frozen code](stale-skill-dir-drift.md)
 
 ## Recently Updated
 
+- [A plan won't read COMPLETE](plan-never-reads-complete.md) - 2026-09-04
 - [Stale skill directory — commands run frozen code](stale-skill-dir-drift.md) - 2026-09-04
 
 ## By Status
 
 | Status | Count |
 |--------|-------|
-| active | 1 |
+| active | 2 |
 | draft | 0 |
 | deprecated | 0 |
 | archived | 0 |

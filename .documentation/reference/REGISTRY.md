@@ -16,17 +16,19 @@ purpose: Quick reference for reference documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 2 |
+| Documents | 3 |
 | Category | development |
 | Load Priority | 7/10 |
 
 ## Active Documents
 
+- [`mandatory:` task frontmatter](mandatory-frontmatter.md)
 - [Skill version marker (`.version`)](skill-version-marker.md)
 - [workspace.json schema](workspace-json.md)
 
 ## Recently Updated
 
+- [`mandatory:` task frontmatter](mandatory-frontmatter.md) - 2026-09-04
 - [Skill version marker (`.version`)](skill-version-marker.md) - 2026-09-04
 - [workspace.json schema](workspace-json.md) - 2026-05-07
 
@@ -34,7 +36,7 @@ purpose: Quick reference for reference documentation
 
 | Status | Count |
 |--------|-------|
-| active | 2 |
+| active | 3 |
 | draft | 0 |
 | deprecated | 0 |
 | archived | 0 |
