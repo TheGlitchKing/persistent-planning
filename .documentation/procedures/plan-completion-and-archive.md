@@ -161,3 +161,14 @@ same pre-flight — there is still exactly one implementation of the rule.
 Plans with no `mandatory:` frontmatter are unaffected.
 
 Symptoms and fixes: [Plan never reads complete](../troubleshooting/plan-never-reads-complete.md).
+
+
+## What counts, and what does not (3.3.1+)
+
+- **Checkboxes** are body content and are counted anywhere *except* inside a fenced code
+  block. A quoted example is documentation, not work. An unterminated fence swallows the
+  rest of the file — the safe direction, since ambiguous content is not counted as
+  outstanding.
+- **`status:` and `mandatory:`** are frontmatter fields and are read *only* from the
+  leading `---` block. They are never matched in prose, tables or fenced examples, which
+  is stricter than fence-stripping alone.

@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.3.1] - 2026-09-04
+
+### Fixed — a plan that documented markdown could not complete (#14)
+
+`plan-status.sh` had one correct frontmatter reader and three that scanned whole files:
+the checkbox counter, the mandatory gate, and blocked detection. A `notes.md` that merely
+*documented* the contract — which is what notes.md is for — tripped all three:
+
+- a fenced `- [ ]` example inflated the denominator, so the plan could never reach
+  COMPLETE. A quoted `- [x]` cancelled out; a quoted `- [ ]` did not.
+- a fenced `mandatory: true` held the plan open with the box count showing a perfect
+  `1/1` — **no visible signal at all**, and the documented triage steps pointed at a
+  notes file that was pure prose. Regression from #13.
+- a fenced `status: blocked` produced a false `blocked` verdict, masked whenever the plan
+  was otherwise COMPLETE, so it surfaced only intermittently.
+
+`archive-plan.sh` inherited all three through its pre-flight and refused to archive,
+advising `--force` — wrong advice for a miscount.
+
+The fix splits in two, because these are not the same defect:
+
+- **Checkboxes are body content**, so counting is now fence-aware — backtick and tilde
+  fences, tagged or not, indented, closing only on their own character. An unterminated
+  fence swallows the rest of the file: ambiguous content is not counted as outstanding.
+- **`status:` and `mandatory:` are frontmatter fields**, so they are read from the leading
+  `---` block via the existing scoped reader, generalised as `frontmatter_field`. That is
+  strictly stronger than fence-stripping — it also rejects the field appearing in prose or
+  a table.
+
+All consumers — `archive-plan.sh`, `/plan-status`, the SessionStart hook — shell out to
+`plan-status.sh` and needed no change. Test suite grows to 109 assertions.
+
 ## [3.3.0] - 2026-09-04
 
 ### Fixed — lg task lists were maintained by hand, and the mandatory closers were unenforceable (#12)

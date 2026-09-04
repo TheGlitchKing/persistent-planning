@@ -43,9 +43,9 @@ init-task.sh  "Wire the API"     --parent ship-widget
 `ship-widget/phase.md`:
 
 ```markdown
-  - [_] (no tasks yet — run `/start-task "Task name" --parent ship-widget`)
-  - [_] **Validate success through comprehensive testing** (MANDATORY — second-to-last)
-  - [_] **Documentation pass — …** (MANDATORY — last)
+- [ ] (no tasks yet — run `/start-task "Task name" --parent ship-widget`)
+- [ ] **Validate success through comprehensive testing** (MANDATORY — second-to-last)
+- [ ] **Documentation pass — …** (MANDATORY — last)
 ```
 
 Two task directories on disk. The phase says *no tasks yet*, permanently.
@@ -126,6 +126,7 @@ reproduction quoted above originally used literal `- [ ]` lines and those three 
 lines counted as three units of unfinished work in this very plan — the same family as
 the placeholder defect this phase fixed, one level down.
 
-Worked around here by writing the example with `- [_]` markers. Not fixed in code: it is
-a distinct defect with its own blast radius (any plan whose notes quote markdown), and it
-belongs in its own issue rather than being smuggled into this one.
+Filed as #14 and fixed there; the example above is written as ordinary markdown again.
+The investigation for #14 found two more instances of the same shape — `mandatory:` and
+`status: blocked` were also grepped file-wide — so frontmatter fields are now read from
+frontmatter and only checkboxes need fence awareness.
