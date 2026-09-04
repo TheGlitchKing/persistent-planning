@@ -20,7 +20,7 @@ Each task is a bounded deliverable. Tasks default to dependencies-first scheduli
 Tasks with no inter-dependencies can be marked `parallelizable: true` in their frontmatter
 so subagent teams can pick them up concurrently.]
 
-- [ ] (no tasks yet — run `/start-task "Task name" --parent PHASE_SLUG_PLACEHOLDER`)
+_(no tasks yet — run `/start-task "Task name" --parent PHASE_SLUG_PLACEHOLDER`)_
 - [ ] **Validate success through comprehensive testing** (MANDATORY — second-to-last)
 - [ ] **Documentation pass — create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc..** (MANDATORY — last)
 

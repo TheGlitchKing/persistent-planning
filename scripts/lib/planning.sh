@@ -175,8 +175,8 @@ planning_render_and_log() {
 #   - above the first item marked MANDATORY, so closers stay last by
 #     construction rather than by anyone remembering;
 #   - after the last item when the section has no MANDATORY entries;
-#   - dropping a "(no ... yet" placeholder item, including its continuation
-#     lines, the first time a real item lands.
+#   - dropping a "(no ... yet" placeholder, checkbox or italic, including its
+#     continuation lines, the first time a real item lands.
 #
 # Idempotent: an identical line already in the section is left alone, so
 # re-running with PLANNING_FORCE=1 cannot double-insert.
@@ -204,7 +204,7 @@ planning_insert_list_item() {
 
       # Drop the "(no ... yet" placeholder and its indented continuation lines.
       for (i = s; i <= e; i++) {
-        if (L[i] ~ /^- \[[ xX]\] \(no /) {
+        if (L[i] ~ /^- \[[ xX]\] \(no / || L[i] ~ /^_\(no /) {
           drop[i] = 1
           for (j = i + 1; j <= e; j++) {
             if (L[j] ~ /^[[:space:]]+[^[:space:]]/) drop[j] = 1; else break

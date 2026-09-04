@@ -29,8 +29,8 @@ under `atoms/` that subagents read via the planning MCP.
 Inline checkbox vs. standalone atom file — see anti-pattern doc:
 .documentation/standards/atom-granularity.md.]
 
-- [ ] (no atoms yet — add inline checkboxes here for simple atoms,
-      or run `/start-atom "Atom name" --parent TASK_SLUG_PLACEHOLDER` for complex ones)
+_(no atoms yet — add inline checkboxes here for simple atoms,
+or run `/start-atom "Atom name" --parent TASK_SLUG_PLACEHOLDER` for complex ones)_
 
 ## Decisions Made
 [Task-level decisions. Format: `**Decision**: rationale`.]
