@@ -208,12 +208,21 @@ else
 fi
 
 # Step 5: Update .gitignore
+#
+# Only completed plans are local history. Active plans are what a teammate or a
+# subagent reads, so they stay shareable (issue #15). This script is deliberately
+# self-contained -- no lib/planning.sh -- so the rule is duplicated here rather than
+# sourced; scripts/lib/planning.sh has the lg-mode copy.
 if [ -f "${PROJECT_ROOT}/.gitignore" ]; then
-    if ! grep -q "^\.planning/" "${PROJECT_ROOT}/.gitignore"; then
-        echo ".planning/" >> "${PROJECT_ROOT}/.gitignore"
-        echo -e "${GREEN}+${NC} Added .planning/ to .gitignore"
+    if grep -qE "^\.planning/?$" "${PROJECT_ROOT}/.gitignore"; then
+        echo -e "${YELLOW}*${NC} .gitignore ignores all of .planning/ -- plans will not be shared."
+        echo -e "  Active plans are what teammates and subagents read. To share them,"
+        echo -e "  replace the '.planning/' line with '.planning/.archive/'."
+    elif grep -qE "^\.planning/\.archive/?$" "${PROJECT_ROOT}/.gitignore"; then
+        echo -e "${YELLOW}*${NC} .planning/.archive/ already in .gitignore"
     else
-        echo -e "${YELLOW}*${NC} .planning/ already in .gitignore"
+        printf '\n# Completed plans retired by scripts/archive-plan.sh (local history)\n.planning/.archive/\n' >> "${PROJECT_ROOT}/.gitignore"
+        echo -e "${GREEN}+${NC} Added .planning/.archive/ to .gitignore (active plans stay shareable)"
     fi
 else
     echo -e "${YELLOW}*${NC} No .gitignore found (not added)"

@@ -172,3 +172,14 @@ Symptoms and fixes: [Plan never reads complete](../troubleshooting/plan-never-re
 - **`status:` and `mandatory:`** are frontmatter fields and are read *only* from the
   leading `---` block. They are never matched in prose, tables or fenced examples, which
   is stricter than fence-stripping alone.
+
+
+## What is tracked (3.4.0+)
+
+Active plans are committed; only `.planning/.archive/` is gitignored. v1.0.0 ignored the
+whole `.planning/` tree, which contradicted this procedure, `CLAUDE.md`, and the archive
+rationale itself — and in lg mode, chosen because a team exists, it guaranteed no
+teammate ever received the plans.
+
+Repos carrying the old blanket line keep it: the init scripts warn once and never rewrite
+a user's `.gitignore`. Replace `.planning/` with `.planning/.archive/` to start sharing.

@@ -181,12 +181,8 @@ scaffold_closer \
   "Run \`npx hewtd audit\` and resolve every error" \
   "Never hand-edit INDEX.md or REGISTRY.md — they are generated"
 
-# Add .planning/ to .gitignore if missing (preserve existing behavior)
-GITIGNORE="${ROOT}/.gitignore"
-if [[ -f "$GITIGNORE" ]] && ! grep -q "^\.planning/" "$GITIGNORE"; then
-  echo ".planning/" >> "$GITIGNORE"
-  planning_ok "Added .planning/ to .gitignore"
-fi
+# Only completed plans are local history — see planning_ensure_archive_gitignored.
+planning_ensure_archive_gitignored "${ROOT}"
 
 echo ""
 planning_ok "Phase '${PHASE_NAME}' ready at .planning/${PHASE_SLUG}/"
