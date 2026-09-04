@@ -239,8 +239,10 @@ mkdir -p "$WS/.planning/.meta"
 echo '{"schema_version":"1.0","mode":"lg"}' > "$WS/.planning/.meta/workspace.json"
 CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "Foundation" >/dev/null
 # A phase now ships with two scaffolded closer task dirs carrying real atoms, so
-# completion means every box under the plan — not just the ones in phase.md.
+# completion means every box under the plan — not just the ones in phase.md — and
+# the mandatory closers must additionally be status: done, not merely ticked.
 find "$WS/.planning/foundation" -name '*.md' -exec sed -i 's/- \[ \]/- [x]/g' {} +
+find "$WS/.planning/foundation" -name 'task.md' -exec sed -i 's/^status: draft$/status: done/' {} +
 CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" --all-complete >/dev/null
 ARCHIVED="$WS/.planning/.archive/foundation/phase.md"
 assert_file "$ARCHIVED" "--all-complete archives every complete plan"

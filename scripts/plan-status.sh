@@ -61,6 +61,24 @@ count_boxes() {
   echo "$total $checked"
 }
 
+# Counts mandatory tasks under a plan that are not yet done.
+#
+# The two closing tasks carry `mandatory: true`. A plan cannot be COMPLETE while one
+# of them is unfinished, however the boxes happen to add up — that gate was stated in
+# the templates and enforced nowhere (issue #12).
+#
+# Additive by design: a plan with no `mandatory: true` artifacts behaves exactly as it
+# did before. Retroactively reopening finished plans would be worse than the bug.
+unfinished_mandatory() {
+  local n=0 f st
+  while IFS= read -r f; do
+    [[ -n "$f" ]] || continue
+    st=$(frontmatter_status "$f")
+    [[ "$st" == "done" || "$st" == "archived" ]] || n=$((n + 1))
+  done < <(grep -rl '^mandatory:[[:space:]]*true' --include='*.md' "$1" 2>/dev/null)
+  echo "$n"
+}
+
 COMPLETE=()
 ROWS=()
 
@@ -75,12 +93,18 @@ for plan_path in "$PLANNING"/*/; do
   read -r total checked <<<"$(count_boxes "${plan_path%/}")"
   status=$(frontmatter_status "$root")
   blocked=$(grep -rl '^status: blocked' --include='*.md' "${plan_path%/}" 2>/dev/null | wc -l | tr -d ' ')
+  pending_mandatory=$(unfinished_mandatory "${plan_path%/}")
 
   if [[ "$status" == "archived" ]]; then
     verdict="archived"
   elif [[ "$status" == "done" ]] || { [[ "$total" -gt 0 ]] && [[ "$checked" -eq "$total" ]]; }; then
-    verdict="COMPLETE"
-    COMPLETE+=("$slug")
+    if [[ "$pending_mandatory" -gt 0 ]]; then
+      # Every box ticked, but a mandatory closer is not done. Not complete.
+      verdict="in progress"
+    else
+      verdict="COMPLETE"
+      COMPLETE+=("$slug")
+    fi
   elif [[ "$blocked" -gt 0 ]]; then
     verdict="blocked"
   elif [[ "$total" -eq 0 ]]; then
