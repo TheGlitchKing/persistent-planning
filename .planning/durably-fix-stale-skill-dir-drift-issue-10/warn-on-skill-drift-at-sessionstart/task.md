@@ -3,7 +3,7 @@ title: Warn on skill drift at SessionStart
 tier: plan
 domains:
   - planning
-status: ready
+status: done
 last_updated: "2026-09-04"
 plan_kind: task
 parent: durably-fix-stale-skill-dir-drift-issue-10
@@ -20,12 +20,12 @@ When the linked skill version differs from the plugin version, SessionStart says
 
 ## Atoms
 
-- [ ] In `runSessionStart`, compare the linked-skill `.version` marker against the plugin/package version
-- [ ] On mismatch, emit a nudge naming both versions, the skill path, and `npx persistent-planning relink`
-- [ ] Merge into the existing single `SessionStart` JSON response -- this repo already intercepts the one stdout write for its plan nudge; a second response line is invalid JSON
-- [ ] Fail open: any error in the drift check must leave session start untouched (match the existing hook's posture)
-- [ ] Suppress the nudge when `updatePolicy: off`
-- [ ] Verify the merge against `hooks/session-start.js` in this repo, which already wraps the runtime's response
+- [x] `driftNudge()` compares the linked skill against the installed package via `driftedSkills()`
+- [x] On drift, the nudge names the path, why it is drifted, the running version vs the installed version, the user-visible consequence, and `npx persistent-planning relink`
+- [x] Merged into the existing single `SessionStart` JSON response — `notice` is now `[planNudge(), driftNudge()]` joined, so the one stdout-intercept covers both
+- [x] Fails open: the whole check is wrapped, and any error yields an empty string
+- [x] Suppressed under `updatePolicy: off` — verified silent with the policy set, warning with it at `nudge`
+- [x] Verified the output parses as one valid JSON payload, not a second response line
 
 ## Decisions Made
 
@@ -37,7 +37,7 @@ disabled.
 runtime's single response. The drift warning uses the same seam.
 
 ## Status
-**Currently ready** -- blocked on the version marker from task 2.
+**Currently done** -- `hooks/session-start.js`.
 
 Status enum: `draft | active | paused | done | archived`
 

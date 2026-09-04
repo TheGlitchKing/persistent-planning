@@ -1,17 +1,21 @@
 #!/usr/bin/env node
 // persistent-planning SessionStart hook.
 //
-// Two jobs:
+// Three jobs:
 //   1. The update check, delegated entirely to @theglitchking/claude-plugin-runtime.
 //   2. A completion nudge: if any plan under .planning/ has every box checked
 //      but is still sitting in the active tree, say so, so the agent archives it
 //      instead of rediscovering a finished plan next session.
+//   3. A drift warning: if .claude/skills/persistent-planning is a real directory
+//      rather than a symlink into this package, it is a frozen v1 copy and every
+//      /start-planning is running stale code. See issue #10.
 
 import { runSessionStart } from "@theglitchking/claude-plugin-runtime";
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { driftedSkills, readSkillVersion } from "../scripts/lib/skill-link.js";
 
 const projectRoot = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,7 +37,49 @@ function planNudge() {
   }
 }
 
-const notice = planNudge();
+function updatePolicy() {
+  try {
+    const raw = readFileSync(join(projectRoot, ".claude", "persistent-planning.json"), "utf8");
+    return JSON.parse(raw)?.updatePolicy || "nudge";
+  } catch {
+    return "nudge";
+  }
+}
+
+function driftNudge() {
+  try {
+    // A user who turned updates off did not ask to be nagged about them either.
+    if (updatePolicy() === "off") return "";
+    const drifted = driftedSkills(projectRoot, packageRoot, "skills");
+    if (!drifted.length) return "";
+
+    let pkgVersion = "unknown";
+    try {
+      pkgVersion = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8")).version;
+    } catch { /* keep "unknown" */ }
+
+    const lines = drifted.map((d) => {
+      const found = readSkillVersion(projectRoot, d.name) || "unversioned (pre-3.1.0 copy)";
+      const why = d.state === "real-dir"
+        ? "is a real directory, not a symlink into the installed package"
+        : `is a symlink to ${d.target}, which is not this package`;
+      return `  - ${d.dest}\n    ${why}\n    running: ${found} | installed: ${pkgVersion}`;
+    });
+
+    return [
+      "[persistent-planning] STALE SKILL DIRECTORY — commands are running frozen code.",
+      ...lines,
+      "  Plans generated from a pre-3.1.0 copy silently omit the mandatory validate and",
+      "  documentation phases and the whole 'On Completion' archive block.",
+      "  Fix:  npx persistent-planning relink",
+    ].join("\n");
+  } catch {
+    // Fail open. A broken drift check must never cost anyone their session start.
+    return "";
+  }
+}
+
+const notice = [planNudge(), driftNudge()].filter(Boolean).join("\n\n");
 
 if (!notice) {
   await runSessionStart({
