@@ -238,7 +238,9 @@ WS=$(new_workspace)
 mkdir -p "$WS/.planning/.meta"
 echo '{"schema_version":"1.0","mode":"lg"}' > "$WS/.planning/.meta/workspace.json"
 CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/init-phase.sh" "Foundation" >/dev/null
-sed -i 's/- \[ \]/- [x]/g' "$WS/.planning/foundation/phase.md"
+# A phase now ships with two scaffolded closer task dirs carrying real atoms, so
+# completion means every box under the plan — not just the ones in phase.md.
+find "$WS/.planning/foundation" -name '*.md' -exec sed -i 's/- \[ \]/- [x]/g' {} +
 CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/archive-plan.sh" --all-complete >/dev/null
 ARCHIVED="$WS/.planning/.archive/foundation/phase.md"
 assert_file "$ARCHIVED" "--all-complete archives every complete plan"

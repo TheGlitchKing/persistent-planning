@@ -21,8 +21,8 @@ Tasks with no inter-dependencies can be marked `parallelizable: true` in their f
 so subagent teams can pick them up concurrently.]
 
 _(no tasks yet — run `/start-task "Task name" --parent PHASE_SLUG_PLACEHOLDER`)_
-- [ ] **Validate success through comprehensive testing** (MANDATORY — second-to-last)
-- [ ] **Documentation pass — create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc..** (MANDATORY — last)
+- [ ] **Validate success through comprehensive testing** (`validate-success-through-comprehensive-testing`) (MANDATORY — second-to-last)
+- [ ] **Documentation pass — create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc..** (`documentation-pass-create-update-deprecate-docs`) (MANDATORY — last)
 
 > The two mandatory closing tasks above MUST remain the last two tasks of this phase.
 > Add new tasks above them; never after. A phase cannot be marked `done` until both are

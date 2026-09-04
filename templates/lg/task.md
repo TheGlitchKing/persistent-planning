@@ -9,6 +9,7 @@ plan_kind: task
 parent: PHASE_SLUG_PLACEHOLDER
 depends_on: []
 parallelizable: false
+mandatory: false
 ---
 
 # Task: TASK_TITLE_PLACEHOLDER
