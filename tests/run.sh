@@ -464,6 +464,172 @@ fi
 assert_contains "$OUT_FILE" "Looked in:" "update names every path it probed"
 rm -rf "$WS"
 
+
+###############################################################################
+echo
+echo "lg list maintenance (issue #12)"
+###############################################################################
+# These assert the invariant AFTER mutation. The pre-existing ordering checks only
+# ever saw a freshly rendered template, which can never be wrong — which is exactly
+# how the closers-must-be-last rule went unenforced.
+
+lg_workspace() { # -> a temp project already in lg mode
+  local d; d=$(new_workspace)
+  mkdir -p "$d/.planning/.meta"
+  echo '{"schema_version":"1.0","mode":"lg"}' > "$d/.planning/.meta/workspace.json"
+  echo "$d"
+}
+
+task_lines() { # <phase.md> -> the checkbox lines of the Tasks section
+  awk '/^## Tasks/ { inside = 1; next } inside && /^## / { inside = 0 }
+       inside && /^- \[[ xX]\] / { print }' "$1"
+}
+
+WS=$(lg_workspace)
+export CLAUDE_PROJECT_DIR="$WS"
+bash "$REPO_DIR/scripts/init-phase.sh" "Ship Widget" >/dev/null
+PHASE="$WS/.planning/ship-widget/phase.md"
+
+# --- the closers arrive as real task directories ------------------------------
+assert_file "$WS/.planning/ship-widget/validate-success-through-comprehensive-testing/task.md" \
+  "init-phase scaffolds the validation closer as a task dir"
+assert_file "$WS/.planning/ship-widget/documentation-pass-create-update-deprecate-docs/task.md" \
+  "init-phase scaffolds the documentation closer as a task dir"
+assert_contains "$WS/.planning/ship-widget/validate-success-through-comprehensive-testing/task.md" \
+  "mandatory: true" "a scaffolded closer carries mandatory: true"
+assert_contains "$WS/.planning/ship-widget/documentation-pass-create-update-deprecate-docs/task.md" \
+  "hewtd" "the docs closer names the hit-em-with-the-docs commands inline"
+if [[ -d "$WS/.planning/ship-widget/validate-success-through-comprehensive-testing/atoms" ]]; then
+  pass "a scaffolded closer gets an atoms/ dir like any other task"
+else
+  fail "a scaffolded closer gets an atoms/ dir like any other task"
+fi
+
+# --- adding tasks maintains the list, above the closers -----------------------
+bash "$REPO_DIR/scripts/init-task.sh" "Build the widget" --parent ship-widget >/dev/null
+bash "$REPO_DIR/scripts/init-task.sh" "Wire the API"     --parent ship-widget >/dev/null
+bash "$REPO_DIR/scripts/init-task.sh" "Polish it"        --parent ship-widget >/dev/null
+
+assert_contains "$PHASE" "**Build the widget** (\`build-the-widget\`)" \
+  "init-task writes the task into phase.md"
+if [[ $(grep -c 'build-the-widget' "$PHASE") -eq 1 ]]; then
+  pass "each task appears in phase.md exactly once"
+else
+  fail "each task appears in phase.md exactly once"
+fi
+if ! grep -q '(no tasks yet' "$PHASE"; then
+  pass "the (no tasks yet) placeholder is gone after the first task"
+else
+  fail "the (no tasks yet) placeholder is gone after the first task"
+fi
+
+mapfile -t TL < <(task_lines "$PHASE")
+assert_eq "5" "${#TL[@]}" "phase lists 3 tasks plus 2 closers"
+case "${TL[0]}" in *"Build the widget"*) pass "tasks appear in creation order" ;;
+  *) fail "tasks appear in creation order"; printf '       got: %s\n' "${TL[0]}" ;; esac
+case "${TL[2]}" in *"Polish it"*) pass "the third task lands above the closers" ;;
+  *) fail "the third task lands above the closers"; printf '       got: %s\n' "${TL[2]}" ;; esac
+case "${TL[3]}" in *"Validate success through comprehensive testing"*) pass "validation closer is STILL second-to-last after mutation" ;;
+  *) fail "validation closer is STILL second-to-last after mutation"; printf '       got: %s\n' "${TL[3]}" ;; esac
+case "${TL[4]}" in *"Documentation pass"*) pass "documentation closer is STILL last after mutation" ;;
+  *) fail "documentation closer is STILL last after mutation"; printf '       got: %s\n' "${TL[4]}" ;; esac
+
+# --- idempotence, including under PLANNING_FORCE ------------------------------
+bash "$REPO_DIR/scripts/init-task.sh" "Build the widget" --parent ship-widget >/dev/null 2>&1
+PLANNING_FORCE=1 bash "$REPO_DIR/scripts/init-task.sh" "Build the widget" --parent ship-widget >/dev/null 2>&1
+if [[ $(grep -c 'build-the-widget' "$PHASE") -eq 1 ]]; then
+  pass "re-running init-task does not double-insert, even with PLANNING_FORCE=1"
+else
+  fail "re-running init-task does not double-insert, even with PLANNING_FORCE=1"
+fi
+
+# --- insertion survives a hand-edited list ------------------------------------
+sed -i 's/^- \[ \] \*\*Wire the API\*\*/- [x] **Wire the API**/' "$PHASE"
+printf '\n<!-- a human annotated this list -->\n' >> "$PHASE"
+bash "$REPO_DIR/scripts/init-task.sh" "Late addition" --parent ship-widget >/dev/null
+mapfile -t TL < <(task_lines "$PHASE")
+case "${TL[-1]}" in *"Documentation pass"*) pass "insertion survives a hand-edited, partially-checked list" ;;
+  *) fail "insertion survives a hand-edited, partially-checked list"; printf '       got: %s\n' "${TL[-1]}" ;; esac
+
+# --- atoms get the same treatment ---------------------------------------------
+bash "$REPO_DIR/scripts/init-atom.sh" "Draft the schema"    --parent build-the-widget >/dev/null
+bash "$REPO_DIR/scripts/init-atom.sh" "Validate the schema" --parent build-the-widget >/dev/null
+TASKMD="$WS/.planning/ship-widget/build-the-widget/task.md"
+assert_contains "$TASKMD" "atoms/draft-the-schema.md" "init-atom writes the atom into task.md"
+assert_contains "$TASKMD" "sequence: 2" "sequence auto-increment survives the list edit"
+if ! grep -q '(no atoms yet' "$TASKMD"; then
+  pass "the (no atoms yet) placeholder is gone after the first atom"
+else
+  fail "the (no atoms yet) placeholder is gone after the first atom"
+fi
+unset CLAUDE_PROJECT_DIR
+rm -rf "$WS"
+
+###############################################################################
+echo
+echo "completion math and the mandatory gate"
+###############################################################################
+WS=$(lg_workspace)
+export CLAUDE_PROJECT_DIR="$WS"
+bash "$REPO_DIR/scripts/init-phase.sh" "Gate Test" >/dev/null
+bash "$REPO_DIR/scripts/init-task.sh" "Real work" --parent gate-test >/dev/null
+
+# A task with no atoms must contribute no phantom box.
+assert_eq "0" "$(grep -c '^- \[' "$WS/.planning/gate-test/real-work/task.md")" \
+  "a task with no atoms carries zero checkboxes"
+
+# Every box ticked, but the closers are still draft -> NOT complete.
+find "$WS/.planning/gate-test" -name '*.md' -exec sed -i 's/- \[ \]/- [x]/g' {} +
+STATUS_OUT=$(bash "$REPO_DIR/scripts/plan-status.sh" 2>/dev/null | grep gate-test)
+case "$STATUS_OUT" in
+  *COMPLETE*) fail "an unfinished mandatory closer blocks COMPLETE"; printf '       got: %s\n' "$STATUS_OUT" ;;
+  *) pass "an unfinished mandatory closer blocks COMPLETE" ;;
+esac
+assert_eq "" "$(bash "$REPO_DIR/scripts/plan-status.sh" --complete 2>/dev/null)" \
+  "--complete honours the mandatory gate"
+assert_eq "" "$(bash "$REPO_DIR/scripts/plan-status.sh" --nudge 2>/dev/null)" \
+  "--nudge honours the mandatory gate"
+
+# archive-plan.sh must inherit the gate through its pre-flight, not duplicate it.
+bash "$REPO_DIR/scripts/archive-plan.sh" gate-test >/dev/null 2>&1
+if [[ ! -d "$WS/.planning/.archive/gate-test" ]]; then
+  pass "archive-plan refuses a plan whose mandatory closers are unfinished"
+else
+  fail "archive-plan refuses a plan whose mandatory closers are unfinished"
+fi
+
+# Mark the closers done -> now complete.
+find "$WS/.planning/gate-test" -name 'task.md' -exec sed -i 's/^status: draft$/status: done/' {} +
+STATUS_OUT=$(bash "$REPO_DIR/scripts/plan-status.sh" 2>/dev/null | grep gate-test)
+case "$STATUS_OUT" in
+  *COMPLETE*) pass "finishing the mandatory closers releases COMPLETE" ;;
+  *) fail "finishing the mandatory closers releases COMPLETE"; printf '       got: %s\n' "$STATUS_OUT" ;;
+esac
+unset CLAUDE_PROJECT_DIR
+rm -rf "$WS"
+
+# --- legacy plans must not regress --------------------------------------------
+# A plan with no mandatory: true artifacts behaves exactly as it did before.
+WS=$(lg_workspace)
+mkdir -p "$WS/.planning/legacy-plan"
+cat > "$WS/.planning/legacy-plan/phase.md" <<'LEGACY'
+---
+title: Legacy Plan
+status: active
+plan_kind: phase
+---
+
+## Tasks
+- [x] Something old
+- [x] Something else
+LEGACY
+STATUS_OUT=$(CLAUDE_PROJECT_DIR="$WS" bash "$REPO_DIR/scripts/plan-status.sh" 2>/dev/null | grep legacy-plan)
+case "$STATUS_OUT" in
+  *COMPLETE*) pass "a legacy plan with no mandatory: frontmatter still reads COMPLETE" ;;
+  *) fail "a legacy plan with no mandatory: frontmatter still reads COMPLETE"; printf '       got: %s\n' "$STATUS_OUT" ;;
+esac
+rm -rf "$WS"
+
 ###############################################################################
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]
