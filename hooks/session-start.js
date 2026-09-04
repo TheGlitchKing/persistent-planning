@@ -3,6 +3,11 @@
 //
 // Three jobs:
 //   1. The update check, delegated entirely to @theglitchking/claude-plugin-runtime.
+//      That import is dynamic on purpose: the runtime resolves out of the shared
+//      ~/.claude/plugins/npm-cache/, which is not guaranteed to be populated. A
+//      static import made an unresolvable runtime fatal for the WHOLE hook, taking
+//      jobs 2-4 down with it — including the repair that is the only way a fix
+//      reaches an already-broken install. Jobs 2-4 need no runtime at all.
 //   2. A completion nudge: if any plan under .planning/ has every box checked
 //      but is still sitting in the active tree, say so, so the agent archives it
 //      instead of rediscovering a finished plan next session.
@@ -14,12 +19,22 @@
 //      node_modules in the plugin cache and never runs npm postinstall -- so it is
 //      the only delivery path a fix can reach existing broken installs through.
 
-import { runSessionStart } from "@theglitchking/claude-plugin-runtime";
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { driftedSkills, readSkillVersion } from "../scripts/lib/skill-link.js";
+
+// Resolve the runtime lazily. Returns null when it cannot be loaded, which costs
+// only the update check — never the drift warning or the repair.
+async function loadRunSessionStart() {
+  try {
+    const mod = await import("@theglitchking/claude-plugin-runtime");
+    return typeof mod?.runSessionStart === "function" ? mod.runSessionStart : null;
+  } catch {
+    return null;
+  }
+}
 
 const projectRoot = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -96,14 +111,18 @@ function autoRepair() {
       timeout: 10000,
     });
 
-    // Stamp regardless of outcome: a repair that cannot succeed must not retry every
-    // session. A later release moves the version and gets one fresh attempt.
-    try {
-      writeFileSync(CONFIG, JSON.stringify({ ...cfg, repairedSkillsForVersion: version }, null, 2) + "\n", "utf8");
-    } catch { /* config unwritable — the drift warning still fires every session */ }
-
+    // Stamp only on success. Stamping a failure turns a transient problem — an
+    // unresolvable runtime, a locked file — into a permanent one: the version is
+    // marked done and the repair never runs again, even once the cause is gone.
+    // A failure costs one spawn per session while genuinely drifted, and the drift
+    // warning fires alongside it naming the manual fix, so nobody is stuck silently.
     const remaining = driftedSkills(projectRoot, packageRoot, "skills");
     if (remaining.length || r.status !== 0) return "";      // let driftNudge() report it
+
+    try {
+      writeFileSync(CONFIG, JSON.stringify({ ...cfg, repairedSkillsForVersion: version }, null, 2) + "\n", "utf8");
+    } catch { /* config unwritable — worst case the repair is attempted again */ }
+
     return "[persistent-planning] repaired a stale skill directory (originals kept as .bak-*).";
   } catch {
     return "";
@@ -147,12 +166,27 @@ function driftNudge() {
 const repaired = autoRepair();
 const notice = [planNudge(), repaired, driftNudge()].filter(Boolean).join("\n\n");
 
-if (!notice) {
-  await runSessionStart({
-    packageName: "@theglitchking/persistent-planning",
-    pluginName: "persistent-planning",
-    configFile: "persistent-planning.json",
-  });
+const runSessionStart = await loadRunSessionStart();
+const RUNTIME_OPTS = {
+  packageName: "@theglitchking/persistent-planning",
+  pluginName: "persistent-planning",
+  configFile: "persistent-planning.json",
+};
+
+function emitNoticeOnly() {
+  // No runtime, so nobody else will emit the response. Say our piece and stop.
+  if (!notice) return;
+  process.stdout.write(
+    JSON.stringify({
+      hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: notice },
+    }) + "\n"
+  );
+}
+
+if (!runSessionStart) {
+  emitNoticeOnly();
+} else if (!notice) {
+  await runSessionStart(RUNTIME_OPTS);
 } else {
   // ponytail: the runtime owns the one SessionStart JSON response and exposes no
   // hook for appending to it, and a second response line on stdout is invalid.
@@ -179,11 +213,7 @@ if (!notice) {
     return realWrite(chunk, ...rest);
   };
 
-  await runSessionStart({
-    packageName: "@theglitchking/persistent-planning",
-    pluginName: "persistent-planning",
-    configFile: "persistent-planning.json",
-  });
+  await runSessionStart(RUNTIME_OPTS);
 
   // The runtime can return without emitting (e.g. it chdir-failed). Say our piece.
   if (!merged) {

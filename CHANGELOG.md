@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.4.1] - 2026-09-04
+
+### Fixed — the SessionStart hook could not survive a missing runtime (#18)
+
+`hooks/session-start.js` imported `@theglitchking/claude-plugin-runtime` statically. That
+package resolves out of the shared `~/.claude/plugins/npm-cache/`, which a marketplace
+plugin cache does not carry itself, so when it could not resolve the **entire hook died** —
+`ERR_MODULE_NOT_FOUND` before any of its work ran.
+
+That took down the drift warning and `autoRepair` along with the update check: the two
+things #10 built precisely so a fix could reach an install that is already broken. The
+delivery path had a single point of failure the payload was meant to survive.
+
+- **The runtime is loaded lazily now**, in a try/catch returning `null`. A resolution
+  failure costs only the update check; the completion nudge, drift warning and repair all
+  still run, and the hook emits its own valid `SessionStart` payload since nothing else
+  will.
+- **A failed repair no longer stamps the version.** `autoRepair` previously stamped
+  `repairedSkillsForVersion` regardless of outcome, to avoid retrying every session — which
+  turned a *transient* failure into a permanent one. Reproduced: one session without a
+  resolvable runtime marked 3.4.0 done, and the repair was then skipped forever even once
+  the runtime returned. It stamps on success only; a failure costs one spawn per session
+  while genuinely drifted, and the drift warning fires alongside it naming the manual fix.
+
+Both defects came from the #10 work and shipped in 3.4.0. Test suite grows to 125
+assertions, including a fixture with no `node_modules` at all.
+
 ## [3.4.0] - 2026-09-04
 
 ### Changed — only completed plans are gitignored (#15)

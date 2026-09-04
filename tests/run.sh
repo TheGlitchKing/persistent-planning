@@ -851,6 +851,73 @@ assert_file "$WS/.gitignore" "archive-plan creates .gitignore when it needs the 
 assert_contains "$WS/.gitignore" ".planning/.archive/" "archive-plan writes the narrow entry"
 rm -rf "$WS"
 
+
+###############################################################################
+echo
+echo "SessionStart survives a missing runtime (issue #18)"
+###############################################################################
+# The runtime resolves out of the shared ~/.claude/plugins/npm-cache/, which is not
+# guaranteed to be populated. A static import made an unresolvable runtime fatal for
+# the whole hook -- taking the drift warning and the repair with it, i.e. exactly the
+# delivery path a fix reaches broken installs through.
+
+# An isolated package root with NO node_modules, so the runtime cannot resolve.
+NORT=$(new_workspace)/pkg
+mkdir -p "$NORT"
+cp -r "$REPO_DIR/hooks" "$REPO_DIR/scripts" "$REPO_DIR/skills" "$REPO_DIR/templates" "$NORT/"
+cp "$REPO_DIR/package.json" "$NORT/"
+
+WS=$(new_workspace)
+mkdir -p "$WS/.claude/skills/persistent-planning"
+echo stale > "$WS/.claude/skills/persistent-planning/SKILL.md"
+printf '{"updatePolicy":"auto"}' > "$WS/.claude/persistent-planning.json"
+
+HOOK_OUT=$(echo '{}' | CLAUDE_PROJECT_DIR="$WS" node "$NORT/hooks/session-start.js" 2>/dev/null)
+HOOK_EXIT=$?
+assert_eq "0" "$HOOK_EXIT" "the hook exits 0 with no runtime available"
+
+# Must still be exactly one valid JSON payload.
+if printf '%s' "$HOOK_OUT" | node -e '
+    let s=""; process.stdin.on("data",d=>s+=d).on("end",()=>{
+      const p=JSON.parse(s);
+      process.exit(p?.hookSpecificOutput?.hookEventName === "SessionStart" ? 0 : 1);
+    });' 2>/dev/null; then
+  pass "a missing runtime still yields one valid SessionStart payload"
+else
+  fail "a missing runtime still yields one valid SessionStart payload"
+fi
+
+case "$HOOK_OUT" in
+  *"STALE SKILL DIRECTORY"*) pass "the drift warning survives a missing runtime" ;;
+  *) fail "the drift warning survives a missing runtime"; printf '       got: %s\n' "$HOOK_OUT" ;;
+esac
+
+# A repair that could not run must NOT stamp the version -- otherwise a transient
+# failure permanently disables repair for that release.
+if ! grep -q 'repairedSkillsForVersion' "$WS/.claude/persistent-planning.json"; then
+  pass "a failed repair does not stamp the version"
+else
+  fail "a failed repair does not stamp the version"
+fi
+if [[ ! -L "$WS/.claude/skills/persistent-planning" ]]; then
+  pass "a failed repair leaves the drifted directory untouched"
+else
+  fail "a failed repair leaves the drifted directory untouched"
+fi
+rm -rf "$WS" "$NORT"
+
+# --- a healthy plan tree with no runtime stays silent -------------------------
+NORT=$(new_workspace)/pkg
+mkdir -p "$NORT"
+cp -r "$REPO_DIR/hooks" "$REPO_DIR/scripts" "$REPO_DIR/skills" "$REPO_DIR/templates" "$NORT/"
+cp "$REPO_DIR/package.json" "$NORT/"
+WS=$(new_workspace)
+mkdir -p "$WS/.claude/skills"
+ln -s "$NORT/skills/persistent-planning" "$WS/.claude/skills/persistent-planning"
+HOOK_OUT=$(echo '{}' | CLAUDE_PROJECT_DIR="$WS" node "$NORT/hooks/session-start.js" 2>/dev/null)
+assert_eq "" "$HOOK_OUT" "no runtime and nothing to say produces no output at all"
+rm -rf "$WS" "$NORT"
+
 ###############################################################################
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]
