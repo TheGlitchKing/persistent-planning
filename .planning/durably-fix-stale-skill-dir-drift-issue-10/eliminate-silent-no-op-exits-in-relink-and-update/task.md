@@ -3,7 +3,7 @@ title: Eliminate silent no-op exits in relink and update
 tier: plan
 domains:
   - planning
-status: ready
+status: done
 last_updated: "2026-09-04"
 plan_kind: task
 parent: durably-fix-stale-skill-dir-drift-issue-10
@@ -20,11 +20,13 @@ No command in this plugin exits 0 after doing nothing; every no-op says what it 
 
 ## Atoms
 
-- [ ] `update` on a `(not installed)` resolution: print the paths checked and exit non-zero (issue #10 fix #4). Today it prints `Current: (not installed) / Now: (not installed)` and exits 0
-- [ ] `runRelink()` (`bin/persistent-planning.js:16-27`): it probes `node_modules/@theglitchking/persistent-planning/scripts/link-skills.js`, falls back to `cwd/scripts/link-skills.js`, and in a marketplace-only consumer neither exists -- it prints "link-skills.js not found" and returns, and the caller exits 0
-- [ ] Add `CLAUDE_PLUGIN_ROOT/scripts/link-skills.js` as a third probe so relink works in a marketplace install at all
-- [ ] Make the failure message name every path probed, not just the conclusion
-- [ ] Audit `registerUpdateCommands` for any other success-shaped no-op on this install shape
+- [x] `update` on no managed install now exits **1** and lists every path probed, instead of printing `(not installed)` twice and exiting 0
+- [x] Guard deliberately excludes the package the CLI itself runs from — under `npx --no ... update` that copy always exists, which is exactly what made the original report look like a clean success
+- [x] Verified against the issue's repro: exits 1 with named paths; with `CLAUDE_PLUGIN_ROOT` set to a real marketplace install it passes through and reports `Current: 3.1.0`
+- [x] `runRelink()` gained two probes — `CLAUDE_PLUGIN_ROOT/scripts/link-skills.js` and the package the CLI runs from — so relink functions in a marketplace-only install, the shape that needs it most
+- [x] `runRelink()` failure now lists every path probed and sets a non-zero exit code
+- [x] `runRelink()` propagates the linker's own non-zero exit instead of swallowing it
+- [x] Audited the rest of `bin/` — `status` is a report, so exit 0 on "(not installed)" is correct there and was left alone
 
 ## Decisions Made
 
@@ -36,7 +38,7 @@ they are the same defect in two places and are fixed together.
 shape that needs it most.
 
 ## Status
-**Currently ready** -- independent; touches only this repo's `bin/` and the runtime's CLI registration.
+**Currently done** -- `bin/persistent-planning.js`. The runtime's CLI registration was not modified; a commander `preAction` hook fails before the runtime's action runs.
 
 Status enum: `draft | active | paused | done | archived`
 
