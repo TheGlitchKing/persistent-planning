@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2026-09-04
+
+### Fixed — Stale skill directories run frozen code (#10)
+
+A consumer repo could run a **pre-3.1.0 copy** of the skill indefinitely while the update
+check reported the current version — no nudge, no warning, exit 0 everywhere. Plans
+generated that way silently omitted the mandatory validate and documentation phases and
+the entire `## On Completion` archive block: precisely the guarantees 3.1.0 was released
+to make.
+
+**Cause.** v1's `persistent-planning install` (removed in 2.0.0) *copied*
+`skills/persistent-planning/` into `.claude/skills/`. The v2+ linker only symlinks, and
+when it finds a real directory at the destination it warns and skips — permanently. So
+`installedVersion()` reported the plugin's version while `/start-planning` executed the
+skill dir's frozen copy. Two artifacts, nothing reconciling them. (The linker was never
+copying, as first reported; it was refusing to reclaim what v1 left behind.)
+
+- **Reclaim instead of skip** — `scripts/lib/skill-link.js` renames a real directory to
+  `<name>.bak-<ISO8601>` before the runtime's linker runs, leaving a clean destination it
+  then symlinks normally. Nothing is ever deleted; a failed rename falls through to the
+  old skip but says so loudly and names the fix. Idempotent — a healthy symlink is left
+  alone, so a second run makes no second backup. Opt out with
+  `PERSISTENT_PLANNING_NO_RECLAIM=1`.
+- **The drift is detectable now.** The primary signal is structural: a real directory at
+  `.claude/skills/<name>` is *always* drift, because nothing in the current system creates
+  one. A `.version` marker beside `SKILL.md` is the secondary signal — how far behind a
+  drifted copy is, and the only signal available where symlinks are impossible. Only
+  healthy symlinks are stamped; stamping a stale copy would mark it current.
+- **SessionStart reports it**, naming the path, the running vs installed version, the
+  user-visible consequence, and `npx persistent-planning relink`. Merged into the existing
+  single JSON response; fails open; silent under `updatePolicy: off`.
+- **SessionStart repairs it under `updatePolicy: auto`**, once per plugin version. This is
+  the part that reaches the installs that are actually broken: a marketplace install has
+  no `node_modules` in the plugin cache and **never runs npm postinstall**, so a fix
+  shipped only through postinstall would reach nobody affected. The hook is the one thing
+  that runs every session in that shape. `nudge` warns without touching the filesystem;
+  `off` does nothing at all.
+- **No more clean exits for no-ops.** `update` with no managed install exits 1 and lists
+  every path probed, instead of printing `(not installed)` twice and exiting 0. `relink`
+  gained `CLAUDE_PLUGIN_ROOT/scripts/` and self-package probes — it previously could not
+  run at all in a marketplace-only install, the shape that needs it most — and no longer
+  swallows the linker's exit code.
+
+Test suite grows to 74 assertions, including a marketplace-shaped fixture with no
+`node_modules`. New docs: `.documentation/troubleshooting/stale-skill-dir-drift.md`,
+`.documentation/architecture/skill-linking-and-reclaim.md`,
+`.documentation/reference/skill-version-marker.md`,
+`.documentation/procedures/plugin-update-delivery.md`.
+
 ## [3.1.0] - 2026-08-31
 
 ### Added — Status tracking and completion archive (#4)

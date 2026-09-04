@@ -3,7 +3,7 @@ title: Architecture Documentation Index
 tier: reference
 domains: [architecture]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Complete listing of architecture documentation
 ---
@@ -14,7 +14,7 @@ purpose: Complete listing of architecture documentation
 
 ## Overview
 
-- **Total Documents:** 2
+- **Total Documents:** 3
 - **Domain:** `architecture/`
 - **Category:** development
 - **Load Priority:** 7/10
@@ -32,6 +32,7 @@ purpose: Complete listing of architecture documentation
 | Document | Status | Updated | Words |
 |----------|--------|---------|-------|
 | [Manus Context Engineering Principles](context-engineering-principles.md) | active | 2026-08-31 | 428 |
+| [Skill linking and reclaim](skill-linking-and-reclaim.md) | active | 2026-09-04 | 348 |
 
 ## Keywords
 
@@ -45,4 +46,4 @@ This domain covers: architecture, design, system, system-design, pattern, patter
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

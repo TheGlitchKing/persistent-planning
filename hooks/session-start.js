@@ -1,17 +1,25 @@
 #!/usr/bin/env node
 // persistent-planning SessionStart hook.
 //
-// Two jobs:
+// Three jobs:
 //   1. The update check, delegated entirely to @theglitchking/claude-plugin-runtime.
 //   2. A completion nudge: if any plan under .planning/ has every box checked
 //      but is still sitting in the active tree, say so, so the agent archives it
 //      instead of rediscovering a finished plan next session.
+//   3. A drift warning: if .claude/skills/persistent-planning is a real directory
+//      rather than a symlink into this package, it is a frozen v1 copy and every
+//      /start-planning is running stale code. See issue #10.
+//   4. Under updatePolicy: auto, actually repair that drift. This hook is the only
+//      code that runs every session in a marketplace install -- that shape has no
+//      node_modules in the plugin cache and never runs npm postinstall -- so it is
+//      the only delivery path a fix can reach existing broken installs through.
 
 import { runSessionStart } from "@theglitchking/claude-plugin-runtime";
 import { spawnSync } from "node:child_process";
 import { dirname, join, resolve } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { driftedSkills, readSkillVersion } from "../scripts/lib/skill-link.js";
 
 const projectRoot = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,7 +41,111 @@ function planNudge() {
   }
 }
 
-const notice = planNudge();
+function updatePolicy() {
+  try {
+    const raw = readFileSync(join(projectRoot, ".claude", "persistent-planning.json"), "utf8");
+    return JSON.parse(raw)?.updatePolicy || "nudge";
+  } catch {
+    return "nudge";
+  }
+}
+
+function packageVersion() {
+  try {
+    return JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8")).version || null;
+  } catch {
+    return null;
+  }
+}
+
+const CONFIG = join(projectRoot, ".claude", "persistent-planning.json");
+
+function readConfig() {
+  try { return JSON.parse(readFileSync(CONFIG, "utf8")) || {}; } catch { return {}; }
+}
+
+/**
+ * Repair a drifted skill dir, at most once per plugin version.
+ *
+ * Runs the package's own linker, which reclaims the stale dir, symlinks, and stamps
+ * the version marker. Spawned rather than imported so a failure is contained in a
+ * child process and cannot take the hook down with it.
+ *
+ * Returns a one-line summary to fold into the session notice, or "".
+ */
+function autoRepair() {
+  try {
+    const policy = updatePolicy();
+    if (policy !== "auto") return "";                       // nudge/off: warn only
+
+    // Fast path first — two lstats, and the overwhelmingly common answer is "nothing
+    // to do". Never pay for the migration on a healthy install.
+    if (!driftedSkills(projectRoot, packageRoot, "skills").length) return "";
+
+    const version = packageVersion();
+    const cfg = readConfig();
+    if (version && cfg.repairedSkillsForVersion === version) return "";  // once per version
+
+    const linker = join(packageRoot, "scripts", "link-skills.js");
+    if (!existsSync(linker)) return "";
+
+    const r = spawnSync(process.execPath, [linker], {
+      cwd: projectRoot,
+      env: { ...process.env, INIT_CWD: projectRoot },
+      encoding: "utf8",
+      timeout: 10000,
+    });
+
+    // Stamp regardless of outcome: a repair that cannot succeed must not retry every
+    // session. A later release moves the version and gets one fresh attempt.
+    try {
+      writeFileSync(CONFIG, JSON.stringify({ ...cfg, repairedSkillsForVersion: version }, null, 2) + "\n", "utf8");
+    } catch { /* config unwritable — the drift warning still fires every session */ }
+
+    const remaining = driftedSkills(projectRoot, packageRoot, "skills");
+    if (remaining.length || r.status !== 0) return "";      // let driftNudge() report it
+    return "[persistent-planning] repaired a stale skill directory (originals kept as .bak-*).";
+  } catch {
+    return "";
+  }
+}
+
+function driftNudge() {
+  try {
+    // A user who turned updates off did not ask to be nagged about them either.
+    if (updatePolicy() === "off") return "";
+    const drifted = driftedSkills(projectRoot, packageRoot, "skills");
+    if (!drifted.length) return "";
+
+    let pkgVersion = "unknown";
+    try {
+      pkgVersion = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf8")).version;
+    } catch { /* keep "unknown" */ }
+
+    const lines = drifted.map((d) => {
+      const found = readSkillVersion(projectRoot, d.name) || "unversioned (pre-3.1.0 copy)";
+      const why = d.state === "real-dir"
+        ? "is a real directory, not a symlink into the installed package"
+        : `is a symlink to ${d.target}, which is not this package`;
+      return `  - ${d.dest}\n    ${why}\n    running: ${found} | installed: ${pkgVersion}`;
+    });
+
+    return [
+      "[persistent-planning] STALE SKILL DIRECTORY — commands are running frozen code.",
+      ...lines,
+      "  Plans generated from a pre-3.1.0 copy silently omit the mandatory validate and",
+      "  documentation phases and the whole 'On Completion' archive block.",
+      "  Fix:  npx persistent-planning relink",
+    ].join("\n");
+  } catch {
+    // Fail open. A broken drift check must never cost anyone their session start.
+    return "";
+  }
+}
+
+// Repair before reporting, so a successful auto-repair does not also warn.
+const repaired = autoRepair();
+const notice = [planNudge(), repaired, driftNudge()].filter(Boolean).join("\n\n");
 
 if (!notice) {
   await runSessionStart({

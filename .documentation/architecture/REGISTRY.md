@@ -3,7 +3,7 @@ title: Architecture Registry
 tier: reference
 domains: [architecture]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Quick reference for architecture documentation
 ---
@@ -16,7 +16,7 @@ purpose: Quick reference for architecture documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 2 |
+| Documents | 3 |
 | Category | development |
 | Load Priority | 7/10 |
 
@@ -24,9 +24,11 @@ purpose: Quick reference for architecture documentation
 
 - [Manus Context Engineering Principles](context-engineering-principles.md)
 - [Lg-Mode Layered Planning Guide](lg-mode.md)
+- [Skill linking and reclaim](skill-linking-and-reclaim.md)
 
 ## Recently Updated
 
+- [Skill linking and reclaim](skill-linking-and-reclaim.md) - 2026-09-04
 - [Manus Context Engineering Principles](context-engineering-principles.md) - 2026-08-31
 - [Lg-Mode Layered Planning Guide](lg-mode.md) - 2026-05-07
 
@@ -34,7 +36,7 @@ purpose: Quick reference for architecture documentation
 
 | Status | Count |
 |--------|-------|
-| active | 2 |
+| active | 3 |
 | draft | 0 |
 | deprecated | 0 |
 | archived | 0 |
@@ -50,4 +52,4 @@ purpose: Quick reference for architecture documentation
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

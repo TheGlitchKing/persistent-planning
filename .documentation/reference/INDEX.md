@@ -3,7 +3,7 @@ title: Reference Documentation Index
 tier: reference
 domains: [reference]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Complete listing of reference documentation
 ---
@@ -14,7 +14,7 @@ purpose: Complete listing of reference documentation
 
 ## Overview
 
-- **Total Documents:** 1
+- **Total Documents:** 2
 - **Domain:** `reference/`
 - **Category:** development
 - **Load Priority:** 7/10
@@ -26,6 +26,12 @@ purpose: Complete listing of reference documentation
 | Document | Status | Updated | Words |
 |----------|--------|---------|-------|
 | [workspace.json schema](workspace-json.md) | active | 2026-05-07 | 358 |
+
+### References
+
+| Document | Status | Updated | Words |
+|----------|--------|---------|-------|
+| [Skill version marker (`.version`)](skill-version-marker.md) | active | 2026-09-04 | 295 |
 
 ## Keywords
 
@@ -39,4 +45,4 @@ This domain covers: schema, frontmatter, workspace.json, field, enum, cli, flags
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

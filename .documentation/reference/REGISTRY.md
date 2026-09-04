@@ -3,7 +3,7 @@ title: Reference Registry
 tier: reference
 domains: [reference]
 status: active
-last_updated: '2026-08-31'
+last_updated: '2026-09-04'
 version: '1.0.0'
 purpose: Quick reference for reference documentation
 ---
@@ -16,23 +16,25 @@ purpose: Quick reference for reference documentation
 
 | Metric | Value |
 |--------|-------|
-| Documents | 1 |
+| Documents | 2 |
 | Category | development |
 | Load Priority | 7/10 |
 
 ## Active Documents
 
+- [Skill version marker (`.version`)](skill-version-marker.md)
 - [workspace.json schema](workspace-json.md)
 
 ## Recently Updated
 
+- [Skill version marker (`.version`)](skill-version-marker.md) - 2026-09-04
 - [workspace.json schema](workspace-json.md) - 2026-05-07
 
 ## By Status
 
 | Status | Count |
 |--------|-------|
-| active | 1 |
+| active | 2 |
 | draft | 0 |
 | deprecated | 0 |
 | archived | 0 |
@@ -48,4 +50,4 @@ purpose: Quick reference for reference documentation
 
 ---
 
-*Last updated: 2026-08-31*
+*Last updated: 2026-09-04*

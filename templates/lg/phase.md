@@ -22,7 +22,7 @@ so subagent teams can pick them up concurrently.]
 
 - [ ] (no tasks yet — run `/start-task "Task name" --parent PHASE_SLUG_PLACEHOLDER`)
 - [ ] **Validate success through comprehensive testing** (MANDATORY — second-to-last)
-- [ ] **Documentation pass — create/update/deprecate docs** (MANDATORY — last)
+- [ ] **Documentation pass — create/update/deprecate as many docs as needed to capture what was done, where it lives, how to troubleshoot it, etc. etc.. etc..** (MANDATORY — last)
 
 > The two mandatory closing tasks above MUST remain the last two tasks of this phase.
 > Add new tasks above them; never after. A phase cannot be marked `done` until both are
@@ -31,7 +31,10 @@ so subagent teams can pick them up concurrently.]
 > - **Validate success**: prove the phase's work with tests that fail if it breaks.
 > - **Documentation pass**: create/update/deprecate every doc this phase touches —
 >   what it is, where it lives, how to fix it, how to operate it, why it matters.
->   If hit-em-with-the-docs is installed, use it for this pass.
+>   If hit-em-with-the-docs is installed, you MUST use it for this pass --
+>   `npx hewtd integrate <file> -a` to create, `npx hewtd archive <file>` to retire,
+>   `npx hewtd maintain --quick` to regenerate indexes. Never hand-edit INDEX.md or
+>   REGISTRY.md; they are generated.
 
 ## Decisions Made
 [Phase-level decisions that affect multiple tasks. Format: `**Decision**: rationale`.]
