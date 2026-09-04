@@ -149,3 +149,15 @@ untouched and the update check still works.
 machine* got somewhere. Sharing it with every clone would grow the repository
 with reasoning nobody reads. If a particular plan is worth keeping, promote its
 findings into a real doc — which is what the mandatory documentation phase is for.
+
+
+## Completion also gates on mandatory tasks (3.3.0+)
+
+"Every checkbox checked" is necessary but no longer sufficient. A plan containing any
+task with `mandatory: true` whose `status:` is not `done` (or `archived`) reads
+`in progress` however the boxes add up, and `archive-plan.sh` refuses it through the
+same pre-flight — there is still exactly one implementation of the rule.
+
+Plans with no `mandatory:` frontmatter are unaffected.
+
+Symptoms and fixes: [Plan never reads complete](../troubleshooting/plan-never-reads-complete.md).

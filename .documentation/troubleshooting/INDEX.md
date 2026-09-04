@@ -14,7 +14,7 @@ purpose: Complete listing of troubleshooting documentation
 
 ## Overview
 
-- **Total Documents:** 1
+- **Total Documents:** 2
 - **Domain:** `troubleshooting/`
 - **Category:** advanced
 - **Load Priority:** 6/10
@@ -25,6 +25,7 @@ purpose: Complete listing of troubleshooting documentation
 
 | Document | Status | Updated | Words |
 |----------|--------|---------|-------|
+| [A plan won't read COMPLETE](plan-never-reads-complete.md) | active | 2026-09-04 | 264 |
 | [Stale skill directory — commands run frozen code](stale-skill-dir-drift.md) | active | 2026-09-04 | 403 |
 
 ## Keywords

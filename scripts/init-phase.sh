@@ -125,6 +125,62 @@ planning_render_and_log \
   "NOTES_SCOPE_PLACEHOLDER=${PHASE_SLUG}" \
   "NOTES_DATE_PLACEHOLDER=${TODAY}"
 
+# Scaffold the two mandatory closing tasks as real task directories.
+#
+# They used to exist only as two checkbox lines in phase.md, so the most important
+# tasks in every plan were the only ones with no artifact for a subagent to read and
+# nowhere to record decisions — and every real plan hand-built them (issue #12).
+scaffold_closer() { # <slug> <title> <atom>...
+  local slug="$1" title="$2"; shift 2
+  local dir="${PHASE_DIR}/${slug}"
+  mkdir -p "${dir}/atoms"
+
+  planning_render_and_log \
+    "${TEMPLATE_DIR}/task.md" \
+    "${dir}/task.md" \
+    "closer task at ${dir}/task.md" \
+    "TASK_TITLE_PLACEHOLDER=${title}" \
+    "TASK_SLUG_PLACEHOLDER=${slug}" \
+    "PHASE_SLUG_PLACEHOLDER=${PHASE_SLUG}" \
+    "TASK_DATE_PLACEHOLDER=${TODAY}"
+
+  planning_render_and_log \
+    "${TEMPLATE_DIR}/notes.md" \
+    "${dir}/notes.md" \
+    "closer notes at ${dir}/notes.md" \
+    "NOTES_TITLE_PLACEHOLDER=${title} — Notes" \
+    "NOTES_SCOPE_PLACEHOLDER=${PHASE_SLUG}/${slug}" \
+    "NOTES_DATE_PLACEHOLDER=${TODAY}"
+
+  # mandatory: true is what plan-status.sh gates on. parallelizable stays false —
+  # a closer gates on everything before it.
+  [[ -f "${dir}/task.md" ]] && sed -i 's/^mandatory: false$/mandatory: true/' "${dir}/task.md"
+
+  local atom
+  for atom in "$@"; do
+    planning_insert_list_item "${dir}/task.md" "## Atoms" "- [ ] ${atom}"
+  done
+}
+
+scaffold_closer \
+  "validate-success-through-comprehensive-testing" \
+  "Validate success through comprehensive testing" \
+  "Prove every claim this phase makes with a test that fails if it breaks" \
+  "Test the invariant after mutation, not the shape of a freshly rendered template" \
+  "Cover the failure mode that prompted the work, not just the happy path" \
+  "Run the full suite green before closing this task"
+
+scaffold_closer \
+  "documentation-pass-create-update-deprecate-docs" \
+  "Documentation pass — create/update/deprecate docs" \
+  "Create docs for what was built: what it is, where it lives, how it works" \
+  "Add a troubleshooting entry for the symptom someone will actually search for" \
+  "Update every existing doc this phase made wrong — a stale doc is worse than a missing one" \
+  "Retire superseded docs with \`npx hewtd archive <file>\` — never by deleting" \
+  "If hit-em-with-the-docs is installed you MUST use it: \`npx hewtd integrate <file> -a\` to create, \`npx hewtd maintain --quick\` to regenerate indexes" \
+  "Run \`npx hewtd audit\` and resolve every error" \
+  "Never hand-edit INDEX.md or REGISTRY.md — they are generated"
+
 # Add .planning/ to .gitignore if missing (preserve existing behavior)
 GITIGNORE="${ROOT}/.gitignore"
 if [[ -f "$GITIGNORE" ]] && ! grep -q "^\.planning/" "$GITIGNORE"; then

@@ -18,7 +18,7 @@ purpose: Navigation hub for all documentation
 |--------|-----------|-------------|
 | [Agents](#agents) | 0 | Expert agent documentation, specialty matrix |
 | [API](#api) | 0 | API endpoints, routes, specifications, contracts |
-| [Architecture](#architecture) | 3 | System design, AI coach, project registry, patterns |
+| [Architecture](#architecture) | 4 | System design, AI coach, project registry, patterns |
 | [Backups](#backups) | 0 | Backup/restore guides, disaster recovery |
 | [Database](#database) | 0 | Schema, migrations, RLS, queries, procedures |
 | [DevOps](#devops) | 0 | Deployment, CI/CD, Docker, environments, infrastructure |
@@ -29,9 +29,9 @@ purpose: Navigation hub for all documentation
 | [Security](#security) | 0 | Security, auth, Vault, Keycloak, RLS |
 | [Standards](#standards) | 2 | Coding standards (backend, frontend, database, devops, security) |
 | [Testing](#testing) | 1 | Test strategies, fixtures, patterns, integration/e2e |
-| [Troubleshooting](#troubleshooting) | 1 | Debug guides, common issues, solutions |
+| [Troubleshooting](#troubleshooting) | 2 | Debug guides, common issues, solutions |
 | [Workflows](#workflows) | 0 | Process documentation, multi-step operations |
-| [Reference](#reference) | 2 | Schema, frontmatter, and CLI reference material for the planning artifacts |
+| [Reference](#reference) | 3 | Schema, frontmatter, and CLI reference material for the planning artifacts |
 
 ---
 
@@ -65,6 +65,7 @@ purpose: Navigation hub for all documentation
 |----------|------|--------|----------|
 | [Manus Context Engineering Principles](architecture/context-engineering-principles.md) | reference | active | 2026-08-31 |
 | [Lg-Mode Layered Planning Guide](architecture/lg-mode.md) | guide | active | 2026-05-07 |
+| [lg plan artifact lifecycle — who writes what](architecture/lg-plan-artifact-lifecycle.md) | reference | active | 2026-09-04 |
 | [Skill linking and reclaim](architecture/skill-linking-and-reclaim.md) | reference | active | 2026-09-04 |
 
 ---
@@ -187,6 +188,7 @@ purpose: Navigation hub for all documentation
 
 | Document | Tier | Status | Updated |
 |----------|------|--------|----------|
+| [A plan won't read COMPLETE](troubleshooting/plan-never-reads-complete.md) | guide | active | 2026-09-04 |
 | [Stale skill directory — commands run frozen code](troubleshooting/stale-skill-dir-drift.md) | guide | active | 2026-09-04 |
 
 ---
@@ -209,6 +211,7 @@ purpose: Navigation hub for all documentation
 
 | Document | Tier | Status | Updated |
 |----------|------|--------|----------|
+| [`mandatory:` task frontmatter](reference/mandatory-frontmatter.md) | reference | active | 2026-09-04 |
 | [Skill version marker (`.version`)](reference/skill-version-marker.md) | reference | active | 2026-09-04 |
 | [workspace.json schema](reference/workspace-json.md) | standard | active | 2026-05-07 |
 

@@ -108,3 +108,19 @@ healthy; only `diff` exposed the 23-line gap, including an entirely missing
 Likewise, assertions against the SessionStart payload parse it as JSON rather than
 string-matching. The failure being guarded is an invalid second response line — a
 substring check would pass on malformed output.
+
+
+## Assert after mutation, not at render
+
+The ordering rule for the mandatory closers went unenforced for a long time while a
+test claimed to cover it. That test asserted the order of two checkbox lines in a
+*freshly rendered template* — which can never be wrong, because nothing had happened to
+it yet.
+
+Assertions about an invariant must mutate the plan first: create a phase, add several
+tasks, then check the closers are still last. The issue #12 block does this throughout,
+including against a hand-reordered, partially-checked, annotated list.
+
+The same instinct applies elsewhere in this suite: verify generated output by `diff`
+rather than keyword count, and parse the SessionStart payload as JSON rather than
+string-matching it.

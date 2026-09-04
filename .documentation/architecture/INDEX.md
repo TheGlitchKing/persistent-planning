@@ -14,7 +14,7 @@ purpose: Complete listing of architecture documentation
 
 ## Overview
 
-- **Total Documents:** 3
+- **Total Documents:** 4
 - **Domain:** `architecture/`
 - **Category:** development
 - **Load Priority:** 7/10
@@ -32,6 +32,7 @@ purpose: Complete listing of architecture documentation
 | Document | Status | Updated | Words |
 |----------|--------|---------|-------|
 | [Manus Context Engineering Principles](context-engineering-principles.md) | active | 2026-08-31 | 428 |
+| [lg plan artifact lifecycle — who writes what](lg-plan-artifact-lifecycle.md) | active | 2026-09-04 | 438 |
 | [Skill linking and reclaim](skill-linking-and-reclaim.md) | active | 2026-09-04 | 348 |
 
 ## Keywords

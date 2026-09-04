@@ -14,7 +14,7 @@ purpose: Complete listing of reference documentation
 
 ## Overview
 
-- **Total Documents:** 2
+- **Total Documents:** 3
 - **Domain:** `reference/`
 - **Category:** development
 - **Load Priority:** 7/10
@@ -31,6 +31,7 @@ purpose: Complete listing of reference documentation
 
 | Document | Status | Updated | Words |
 |----------|--------|---------|-------|
+| [`mandatory:` task frontmatter](mandatory-frontmatter.md) | active | 2026-09-04 | 270 |
 | [Skill version marker (`.version`)](skill-version-marker.md) | active | 2026-09-04 | 295 |
 
 ## Keywords
