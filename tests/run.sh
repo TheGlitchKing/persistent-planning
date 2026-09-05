@@ -452,9 +452,13 @@ rm -rf "$WS"
 echo
 echo "CLI: no clean exits for no-ops"
 ###############################################################################
+# HOME is overridden throughout: the runtime probes
+# ~/.claude/plugins/installed_plugins.json for a marketplace install, so without
+# this the result depends on whether the developer happens to have the plugin
+# installed. Both branches below are asserted against a fixture, not a machine.
 WS=$(new_workspace)
 OUT_FILE="$WS/update.out"
-( cd "$WS" && node "$REPO_DIR/bin/persistent-planning.js" update >"$OUT_FILE" 2>&1 )
+( cd "$WS" && HOME="$WS" node "$REPO_DIR/bin/persistent-planning.js" update >"$OUT_FILE" 2>&1 )
 UPDATE_EXIT=$?
 if [[ $UPDATE_EXIT -ne 0 ]]; then
   pass "update exits non-zero when no managed install is found"
@@ -462,6 +466,27 @@ else
   fail "update exits non-zero when no managed install is found"
 fi
 assert_contains "$OUT_FILE" "Looked in:" "update names every path it probed"
+rm -rf "$WS"
+
+# A marketplace install is updatable only through /plugin -- npm cannot touch the
+# plugin cache, so `update` must say so rather than run a no-op and exit 0.
+WS=$(new_workspace)
+OUT_FILE="$WS/update.out"
+mkdir -p "$WS/.claude/plugins"
+cat > "$WS/.claude/plugins/installed_plugins.json" <<'JSON'
+{"version":2,"plugins":{"persistent-planning@persistent-planning-marketplace":[
+  {"scope":"user","version":"3.4.2","installPath":"/fake/cache/3.4.2"}
+]}}
+JSON
+( cd "$WS" && HOME="$WS" node "$REPO_DIR/bin/persistent-planning.js" update >"$OUT_FILE" 2>&1 )
+UPDATE_EXIT=$?
+if [[ $UPDATE_EXIT -ne 0 ]]; then
+  pass "update on a marketplace install exits non-zero instead of no-opping"
+else
+  fail "update on a marketplace install exits non-zero instead of no-opping"
+fi
+assert_contains "$OUT_FILE" "/fake/cache/3.4.2" "update names the plugin install it found"
+assert_contains "$OUT_FILE" "/plugin" "update points at /plugin, which can actually update it"
 rm -rf "$WS"
 
 

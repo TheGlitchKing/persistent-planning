@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [3.4.2] - 2026-09-05
+
+### Changed — the local `update` guard moves upstream into the runtime
+
+3.4.0 added a `preAction` guard in `bin/persistent-planning.js` because the
+runtime's `update` resolved installation state from `<cwd>/node_modules` and
+`CLAUDE_PLUGIN_ROOT` only, found neither in a marketplace-only install, and
+exited 0 after an `npm update` that touched nothing. The guard worked, but it
+was a workaround living in one plugin while every sibling stayed broken —
+babel-fish#17 was the same defect reported against babel-fish.
+
+Fixed properly in `@theglitchking/claude-plugin-runtime` 0.1.1, which this
+release requires. `resolveInstall()` there probes npm dep → `CLAUDE_PLUGIN_ROOT`
+→ the marketplace record in `~/.claude/plugins/installed_plugins.json`, so the
+26-line guard is deleted rather than reimplemented.
+
+The result is strictly better than the guard it replaces. Previously a
+marketplace install satisfied the guard and fell through to a no-op `npm update`
+that exited 0; now it is recognised, named by path, and refused with a pointer
+at `/plugin` — the only thing that can actually update a plugin-cache copy.
+
+The dependency floor is `^0.1.1`, not `^0.1.0`: the shared plugin dep tree at
+`~/.claude/plugins/npm-cache` pins the runtime at 0.1.0 in its lockfile, and
+0.1.0 still satisfies `^0.1.0`, so the broken copy would have survived.
+
+### Fixed — the CLI test depended on the developer's own machine
+
+`tests/run.sh` ran `update` in a temp workspace but inherited the real `$HOME`,
+so once the runtime learned to read `~/.claude/plugins/installed_plugins.json`
+the assertion passed or failed depending on whether the person running it
+happened to have the plugin installed. `HOME` is now overridden, and the
+marketplace branch is asserted against a fixture rather than a machine.
+
 ## [3.4.1] - 2026-09-04
 
 ### Fixed — the SessionStart hook could not survive a missing runtime (#18)
