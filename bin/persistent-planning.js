@@ -55,32 +55,6 @@ program
   .description("Persistent markdown-based planning for Claude Code.")
   .version(version);
 
-// The runtime's `update` resolves the installed version, finds none in a
-// marketplace-only install, prints "Current: (not installed) / Now: (not installed)"
-// and exits 0 -- a clean success for a no-op. Fail before it gets that far, and say
-// where we looked. Same defect as runRelink's missing third probe (issue #10, fix #4).
-// Deliberately NOT including the package this CLI runs from: under
-// `npx --no @theglitchking/persistent-planning update` that copy always exists, which
-// is what let the original bug report see a clean exit 0 for a no-op. Only a *managed*
-// install -- a project dependency or a marketplace plugin root -- is updatable.
-function installCandidates(cwd) {
-  const out = [join(cwd, "node_modules", "@theglitchking", "persistent-planning", "package.json")];
-  if (process.env.CLAUDE_PLUGIN_ROOT) out.push(join(process.env.CLAUDE_PLUGIN_ROOT, "package.json"));
-  return out;
-}
-
-program.hook("preAction", (_thisCmd, actionCmd) => {
-  if (actionCmd.name() !== "update") return;
-  const candidates = installCandidates(process.cwd());
-  if (candidates.some((p) => existsSync(p))) return;
-  console.error("update failed: no managed install of @theglitchking/persistent-planning found.");
-  console.error("Looked in:");
-  for (const p of candidates) console.error(`  ${p}`);
-  console.error("\nInstall it with `npm i -D @theglitchking/persistent-planning`,");
-  console.error("or update the marketplace plugin with `/plugin` inside Claude Code.");
-  process.exit(1);
-});
-
 registerUpdateCommands(program, {
   packageName: PKG,
   pluginName: "persistent-planning",

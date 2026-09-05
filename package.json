@@ -1,6 +1,6 @@
 {
   "name": "@theglitchking/persistent-planning",
-  "version": "3.4.1",
+  "version": "3.4.2",
   "description": "Persistent markdown-based planning with task directories, progress tracking, and context engineering for multi-step Claude Code workflows",
   "type": "module",
   "bin": {
@@ -55,7 +55,7 @@
   },
   "homepage": "https://github.com/TheGlitchKing/persistent-planning#readme",
   "dependencies": {
-    "@theglitchking/claude-plugin-runtime": "^0.1.0",
+    "@theglitchking/claude-plugin-runtime": "^0.1.1",
     "commander": "^14.0.0"
   },
   "devDependencies": {
